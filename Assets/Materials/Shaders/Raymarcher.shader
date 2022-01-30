@@ -1,375 +1,499 @@
 Shader "Raymarching/Raymarcher"
 {
-    Properties
-    {
-        _MainTex ("Texture", 2D) = "white" {}
-    }
-    SubShader
-    {
-        Tags { "RenderType"="Opaque" }
-        LOD 100
+	Properties
+	{
+		_MainTex("Texture", 2D) = "white" {}
+	}
+		SubShader
+	{
+		Tags { "RenderType" = "Opaque"  }
+		LOD 100
 
-        Pass
-        {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag            
-
-            #include "UnityCG.cginc"
+		Pass
+		{
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag   
+			
+			#include "UnityCG.cginc"
 
 #define max_steps 100
 #define max_dist 100
 #define surf_dist 1e-3
+#define anti_aliasing 3
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
+			struct appdata
+			{
+				float4 vertex : POSITION;
+				float2 uv : TEXCOORD0;
+			};	
 
-            struct v2f
-            {
-                float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
-                float4 vertex : SV_POSITION;
-                float3 ro : TEXCOORD1;
-                float3 hitPos : TEXCOORD2;
-            };
+			struct v2f
+			{
+				float2 uv : TEXCOORD0;
+				UNITY_FOG_COORDS(1)
+				float4 vertex : SV_POSITION;
+				float3 ro : TEXCOORD1;
+				float3 hitPos : TEXCOORD2;
+			};
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
+			struct vector12 {
+				float a;
+				float b;
+				float c;
+				float d;
+				float e;
+				float f;
+				float g;
+				float h;
+				float i;
+				float j;
+				float k;
+				float l;
+			};
 
-            //for vertices
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.ro = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1)); //world space
-                o.hitPos = mul(unity_ObjectToWorld, v.vertex);
-                //o.hitPos = v.vertex;
-                return o;
-            }
+			struct Shape 
+			{	
+				float3 col;
+				int shapeIndex;
+				vector12 dimensions;
+			};			
 
-            float ndot(float2 a, float2 b) {
-                return a.x * b.x - a.y * b.y;
-            }
+			StructuredBuffer<Shape> shapes;			
 
-            float dot2(float3 f) {
-                return dot(f, f);
-            }
-            
-            float GetDist(float3 p) {
-                float d;
-                //sphere
-                d = length(p) - .5f;              
+			sampler2D _MainTex;
+			float4 _MainTex_ST;
 
-                //box
-                float3 q = abs(p) - .25f;
-                d = length(max(q, 0)) + min(max(q.x, max(q.y, q.z)), 0);               
+			//for vertices
+			v2f vert(appdata v)
+			{
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+				o.ro = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1)); //world space
+				o.hitPos = mul(unity_ObjectToWorld, v.vertex);
+				//o.hitPos = v.vertex;
+				return o;
+			}
 
-                //round box
-                q = abs(p) - .25f;
-                d = length(max(q, 0)) + min(max(q.x, max(q.y, q.z)), 0) - .1f;
+			float ndot(float2 a, float2 b) {
+				return a.x * b.x - a.y * b.y;
+			}
 
-                //box frame
-                float3 s = float3(.4f, .4f, .5f);
-                p = abs(p) - s;
-                q = abs(p + .05f) - .05f;
-                d = min(min(
-                    length(max(float3(p.x, q.y, q.z), 0)) + min(max(p.x, max(q.y, q.z)), 0),
-                    length(max(float3(q.x, p.y, q.z), 0)) + min(max(q.x, max(p.y, q.z)), 0)),
-                    length(max(float3(q.x, q.y, p.z), 0)) + min(max(q.x, max(q.y, p.z)), 0));
+			float dot2(float3 f) {
+				return dot(f, f);
+			}
 
-                //torus
-                float2 t = float2(.3f, .25f);
-                float2 w = float2(length(p.xz) - t.x, p.y);
-                d = length(w) - t.y;
+			float dot2(float2 f) {
+				return dot(f, f);
+			}
 
-                //capped torus
-                p.x = abs(p.x);
-                float ro = .5f;
-                float ri = .1f;
-                float2 ct = float2(.25f, .25f);
-                float x = (ct.y * p.x > ct.x * p.y) ? dot(p.xy, ct) : length(p.xy);
-                d = sqrt(dot(p, p) + ro * ro - 2 * ro * x) - ri;
+			//sphere
+			float sdSphere(float3 p, float r) {
+				return length(p) - r;
+			}
 
-                //link
-                float ls = .125f;
-                q = float3(p.x, max(abs(p.y) - ls, 0), p.z);
-                d = length(float2(length(q.xy) - ro, q.z)) - ri;
+			//torus
+			float sdTorus(float3 p, float2 s) {
+				float2 w = float2(length(p.xz) - s.x, p.y);
+				return length(w) - s.y;
+			}
 
-                //infinite cylinder
-                float3 c = float3(.025f, .025f, .025f);
-                d = length(p.xz - c.xy) - c.z;
+			//capped torus
+			float sdCappedTorus(float3 p, float ro, float ri, float2 t) {
+				p.x = abs(p.x);
+				float x = (t.y * p.x > t.x * p.y) ? dot(p.xy, t) : length(p.xy);
+				return sqrt(dot(p, p) + ro * ro - 2 * ro * x) - ri;
+			}
 
-                //cone
-                float ch = .25f;
-                float2 cc = float2(.25f, .25f);
-                float2 cq = ch * float2(cc.x / cc.y, -1);
-                
-                float2 cw = float2(length(p.xz), p.y);
-                float2 ca = cw - cq * clamp(dot(cw, cq) / dot(cq, cq), 0, 1);
-                float2 cb = cw - cq * float2(clamp(cw.x / cq.x, 0, 1), 1);
-                float ck = sign(cq.y);
-                float cd = min(dot(ca, ca), dot(cb, cb));
-                float cs = max(ck * (cw.x * cq.y - cw.y * cq.x), ck * (cw.y - cq.y));
-                d = sqrt(cd) * sign(cs);
+			//link
+			float sdLink(float3 p, float s, float ro, float ri) {
+				float3 q = float3(p.x, max(abs(p.y) - s, 0), p.z);
+				return length(float2(length(q.xy) - ro, q.z)) - ri;
+			}
 
-                //bound cone
-                float cbq = length(p.xz);
-                float cbh = .5f;
-                float2 cbc = float2(.25f, .25f);
-                d = max(dot(cbc.xy, float2(cbq, p.y)), -cbh - p.y);
+			//cone
+			float sdCone(float3 p, float3 c, float h)
+			{
+				float2 q = h * float2(c.x / c.y, -1.0);
 
-                //infinite cone
-                float2 icc = float2(.25f, .25f);
-                float2 icq = float2(length(p.xz), -p.y);
-                float icd = length(icq - icc * max(dot(icq, icc), 0));
-                d = icd * ((icq.x * icc.y - icq.y * icc.x < 0) ? -1 : 1);
+				float2 w = float2(length(p.xz), p.y);
+				float2 a = w - q * clamp(dot(w, q) / dot(q, q), 0.0, 1.0);
+				float2 b = w - q * float2(clamp(w.x / q.x, 0.0, 1.0), 1.0);
+				float k = sign(q.y);
+				float d = min(dot(a, a), dot(b, b));
+				float s = max(k * (w.x * q.y - w.y * q.x), k * (w.y - q.y));
+				return sqrt(d) * sign(s);
+			}
 
-                //plane
-                float h = .25f;
-                float3 pn = float3(0, 1, 0);
-                d = dot(p, pn) + h;
+			//infinite cone
+			float sdInfCone(float3 p, float3 c) {
+				float2 q = float2(length(p.xz), -p.z);
+				float d = length(q - c * max(dot(q, c), 0));
+				return d * ((q.x * c.y - q.y * c.x < 0) ? -1 : 1);
+			}
 
-                //hexagonal prism
-                const float3 hpk = float3(-0.8660254, 0.5, 0.57735);
-                float2 hph = float2(.25f, .25f);
-                p = abs(p);
-                p.xy -= 2 * min(dot(hpk.xy, p.xy), 0) * hpk.xy;
-                float2 hpd = float2(length(p.xy - float2(clamp(p.x, -hpk.z * hph.x, hpk.z * hph.x), hph.x)) * sign(p.y - hph.x), p.z - hph.y);
-                d = min(max(hpd.x, hpd.y), 0) + length(max(d, 0));
+			//plane
+			float sdPlane(float3 p, float3 n, float h) {
+				return dot(p, n) + h;
+			}
 
-                //triangular prism
-                float3 tpq = abs(p);
-                float2 tph = float2(.5f, .5f);
-                d = max(tpq.z - tph.y, max(tpq.x * 0.866025 + p.y * 0.5, -p.y) -tph.x * 0.5);
+			//hexagonal prism
+			float sdHexPrism(float3 p, float2 h)
+			{
+				const float3 k = float3(-0.8660254, 0.5, 0.57735);
+				p = abs(p);
+				p.xy -= 2.0 * min(dot(k.xy, p.xy), 0.0) * k.xy;
+				float2 d = float2(
+					length(p.xy - float2(clamp(p.x, -k.z * h.x, k.z * h.x), h.x)) * sign(p.y - h.x),
+					p.z - h.y);
+				return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+			}
 
-                //capsule
-                float3 cro = float3(.5f, .5f, .5f);
-                float3 cri = float3(.1f, .1f, .1f);
-                float r = .25f;
+			//triangular prism
+			float sdTriPrism(float3 p, float2 h)
+			{
+				float3 q = abs(p);
+				return max(q.z - h.y, max(q.x * 0.866025 + p.y * 0.5, -p.y) - h.x * 0.5);
+			}
 
-                float3 pa = p - cro;
-                float3 ba = cro - cri;
+			//capsule
+			float sdCapsule(float3 p, float3 a, float3 b, float r)
+			{
+				float3 pa = p - a, ba = b - a;
+				float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+				return length(pa - ba * h) - r;
+			}
 
-                h = clamp(dot(pa, ba) / dot(ba, ba), 0, 1);
-                d = length(pa - ba * h) - r;
-
-                //line capsule
-                r = .1f;
-                p.y -= clamp(p.y, 0, h);
-                d = length(p) - r;
-
-                //capped cylinder
-                h = .25f;                
-                float2 ccd = abs(float2(length(p.xz), p.y)) - float2(h, r);
-                d = min(max(ccd.x, ccd.y), 0) + length(max(ccd, 0));
-
-                //rounded cylinder
-                float rcro = .25f;
-                float rcrt = .1f;
-                float rch = .5f;
-
-                float2 rcd = float2(length(p.xz) - 2 * rcro + rcrt, abs(p.y) - rch);
-                d = min(max(rcd.x, rcd.y), 0) + length(max(d, 0)) - rcrt;
-
-                //capped cone
-                float ccoh = .5f;
-                float ccor1 = .5f;
-                float ccor2 = .25f;
-                float2 ccoq = float2(length(p.xz), p.z);
-                float2 ccok1 = float2(ccor2, ccoh);
-                float2 ccok2 = float2(ccor2 - ccor1, 2 * ccoh);
-                float2 ccoca = float2(ccoq.x - min(ccoq.x, (ccoq.y < 0) ? ccor1 : ccor2), abs(ccoq.y) - ccoh);
-                float2 ccocb = ccoq - ccok1 + ccok2 * clamp(dot(ccok1 - ccoq, ccok2) / dot(ccok2, ccok2), 0, 1);
-                float ccos = (ccocb.x < 0 && ccoca.y < 0) ? -1 : 1;
-                d = ccos * sqrt(min(dot(ccoca, ccoca), dot(ccocb, ccocb)));
-
-                //solid cone
-                float2 scc = float2(.25f, .25f);
-                float2 scra = float2(.5f, .5f);
-                float2 scq = float2(length(p.xz), p.y);
-                float scl = length(scq) - scra;
-                float scm = length(scq - scc * clamp(dot(scq, scc), 0, scra));
-                d = max(scl, scm * (scc.y * scq.x - scc.x * scq.y));
-                
-                //cut sphere
-                float csr = .5f;
-                float csh = .5f;
-
-                float csw = sqrt(csr * csr - csh * csh);
-                float2 csq = float2(length(p.xz), p.y);
-                float css = max((csh - csr) * csq.x * csq.x + csw * csw * (csh + csr - 2 * csq.y), csh * csq.x - csw * csq.y);
-                d = (css < 0) ? length(q) - r : (q.x < w) ? h - q.y : length(q - float2(csw, csh));
-
-                //round cone
-                float rcor1 = .1f;
-                float rcor2 = .3f;
-                float rcoh = .5f;
-                float2 rcoq = float2(length(p.xz), p.y);
-                float rcob = (rcor1 - rcor2) / rcoh;
-                float rcoa = sqrt(1 - rcob * rcob);
-                float rcok = dot(rcoq, float2(-rcob, 0));
-
-                if (rcok < 0) d = length(rcoq) - rcor1;
-                if (rcok > rcoa * rcoh) d = length(rcoq - float2(0, rcoh)) - rcor2;
-
-                //bound ellipsoid
-                float3 ber = float3(.25f, .35f, .45f);
-                float bek0 = length(p / ber);
-                float bek1 = length(p / (ber * ber));
-                d = bek0 * (bek0 - 1) / bek1;
-
-                //rhombus 
-                float rla = .25f;
-                float rlb = .45f;
-                float rh = .5f;
-                float rra = .6f;
-                p = abs(p);
-                float2 rb = float2(rla, rlb);
-                float rf = clamp((ndot(rlb, rb - 2 * p.xz)) / dot(rb, rb), -1, 1);
-                float2 rq = float2(length(p.xz - .5f * rb * float2(1 - rf, 1 + rf)) * sign(p.x * rb.y + p.z * rb.x - rb.x * rb.y) - rra, p.y - rh);
-                d = min(max(rq.x, rq.y), 0) + length(max(rq, 0));
-
-                //octahedron
-                float os = .5f;
-                p = abs(p);
-                float om = p.x + p.y + p.z - os;
-                float3 oq;
-                if (3 * p.x < om) oq = p.xyz;
-                else if (3 * p.y < om) oq = p.yxz;
-                else if (3 * p.z < om) oq = p.zxy;
-                else return om * 0.57735027;
-                float ok = clamp(0.5 * (oq.z - oq.y + os), 0, s);
-                d = length(float3(oq.x, oq.y - os + ok, oq.z - ok));
-
-                //bound octahedron
-                p = abs(p);
-                d = (p.x + p.y + p.z - s) * 0.57735027;
-
-                //pyramid
-                float ph = .5f;
-                float pm = ph * ph + .25f;
-
-                p.xz = abs(p.xz);
-                p.xz = (p.z > p.x) ? p.zx : p.xz;
-                p.xz -= .5f;
-                
-                float3 pq = float3(p.z, ph * p.y - .5f * p.x, ph * p.x + .5f * p.y);
-                float ps = max(-pq.x, 0);
-                float pt = clamp((pq.y - .5f * p.z) / (pm + .25f), 0, 1);
-                float pya = pm * (pq.x + ps) * (pq.x + ps) + pq.y * pq.y;
-                float pb = pm * (pq.x + .5f * pt) * (pq.x + .5f * pt) + (pq.y - pm * t) * (pq.y - pm * t);
-
-                float pd = min(pq.y, -pq.x * pm - pq.y * .5f) > 0 ? 0 : min(pya, pb);
-                d = sqrt((pd + pq.z * pq.z) / pm) * sign(max(pq.z, -p.y));
-
-                //triangle
-                float3 ta = float3(.25f, .25f, .25f);
-                float3 tb = float3(.25f, -.25f, -.25f);
-                float3 tc = float3(-.25f, .25f, .25f);
-
-                float3 tba = tb - ta;
-                float3 tpa = p - ta;
-                float3 tcb = tc - tb;
-                float3 tpb = p - tb;
-                float3 tac = ta - tc;
-                float3 tpc = p - tc;
-                float3 nor = cross(tba, tac);
-
-                d = sqrt((sign(dot(cross(tba, nor), tpa)) + sign(dot(cross(tcb, nor), tpb)) + sign(dot(cross(tac, nor), tpc)) < 2) ?
-                    min(min(
-                        dot2(tba * clamp(dot(tba, tpa) / dot2(tba), 0, 1) - tpa),
-                        dot2(tcb * clamp(dot(tcb, tpb) / dot2(tcb), 0, 1) - tpb)),
-                        dot2(tac * clamp(dot(tac, tpc) / dot2(tac), 0, 1) - tpc))
-                    :
-                    dot(nor, tpa) * dot(nor, tpa) / dot2(nor));
-
-                //quad
-                float3 qua = float3(.35f, .45f, .65f);
-                float3 qub = float3(-.35f, .45f, .65f);
-                float3 quc = float3(.35f, -.45f, .65f);
-                float3 qud = float3(.35f, .45f, -.65f);
-
-                float3 quba = qub - qua;
-                float3 qupa = p - qua;
-                float3 qucb = quc - qub;
-                float3 qupb = p - qub;
-                float3 qudc = qud - quc;
-                float3 qupc = p - quc;
-                float3 quad = qua - qud;
-                float3 qupd = p - qud;
-                nor = cross(quba, quad);
-
-                d = sqrt(
-                    sign(dot(cross(quba, nor), qupa)) +
-                    sign(dot(cross(qucb, nor), qupb)) +
-                    sign(dot(cross(qudc, nor), qupc)) +
-                    sign(dot(cross(quad, nor), qupd)) < 3)
-                    ?
-                    min(min(min(
-                        dot2(quba * clamp(dot(quba, qupa) / dot2(quba), 0, 1) - qupa),
-                        dot2(qucb * clamp(dot(qucb, qupb) / dot2(qucb), 0, 1) - qupb)),
-                        dot2(qudc * clamp(dot(qudc, qupc) / dot2(qudc), 0, 1) - qupc)),
-                        dot2(quad * clamp(dot(quad, qupd) / dot2(quad), 0, 1) - qupd))
-                    :
-                    dot(nor, qupa) * dot(nor, qupa) / dot2(nor);
-
-                return d;
-            }
+			//infinite cylinder
+			float sdInfiniteCylinder(float3 p, float3 c) {
+				return length(p.xz - c.xy) - c.z;
+			}
 
 
-            float Raymarch(float3 ro, float3 rd) {
-                float d_origin = 0;
-                float d_scene = 0;
+			//box
+			float sdBox(float3 p, float s) {
+				float3 q = abs(p) - s;
+				return length(max(q, 0)) + min(max(q.x, max(q.y, q.z)), 0);
+			}
 
-                for (int i = 0; i < max_steps; i++) {
-                    float3 p = ro + d_origin * rd;
-                    d_scene = GetDist(p);
-                    d_origin += d_scene;
+			//round box 
+			float sdRoundBox(float3 p, float s, float t) {
+				float3 q = abs(p) - s;
+				return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - t;
+			}
 
-                    if (d_scene < surf_dist || d_origin > max_dist) break;
-                }
 
-                return d_origin;
-            }
+			//rounded cylinder
+			float sdRoundedCylinder(float3 p, float ra, float rb, float h)
+			{
+				float2 d = float2(length(p.xz) - 2.0 * ra + rb, abs(p.y) - h);
+				return min(max(d.x, d.y), 0.0) + length(max(d, 0.0)) - rb;
+			}
 
-            float3 GetNormal(float3 p) {
-                float2 e = float2(1e-2, 0);
-                float3 n = GetDist(p) - float3(GetDist(p - e.xyy), GetDist(p - e.yxy), GetDist(p - e.yyx));
-                return normalize(n);
-            }
+			//capped cone
+			float sdCappedCone(float3 p, float h, float r1, float r2)
+			{
+				float2 q = float2(length(p.xz), p.y);
+				float2 k1 = float2(r2, h);
+				float2 k2 = float2(r2 - r1, 2.0 * h);
+				float2 ca = float2(q.x - min(q.x, (q.y < 0.0) ? r1 : r2), abs(q.y) - h);
+				float2 cb = q - k1 + k2 * clamp(dot(k1 - q, k2) / dot2(k2), 0.0, 1.0);
+				float s = (cb.x < 0.0 && ca.y < 0.0) ? -1.0 : 1.0;
+				return s * sqrt(min(dot2(ca), dot2(cb)));
+			}
 
-            //for pixels
-            fixed4 frag(v2f i) : SV_Target
-            {
-                // sample the texture
-                float2 uv = i.uv - .5f;
-                float3 ro = i.ro;
-                float3 rd = i.hitPos - ro;
-                rd = normalize(rd);
+			//box frame
+			float sdBoxFrame(float3 p, float3 s, float t) {
+				p = abs(p) - s;
+				float3 q = abs(p + t) - t;
+				return min(min(
+					length(max(float3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0),
+					length(max(float3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)),
+					length(max(float3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0));
+			}
 
-                //fixed4 tex = tex2D(_MainTex, i.uv);
-                fixed4 col = 0;
-                //col.rgb = ray_direction;
+			//solid angle
+			float sdSolidAngle(float3 p, float2 c, float ra)
+			{
+				float2 q = float2(length(p.xz), p.y);
+				float l = length(q) - ra;
+				float m = length(q - c * clamp(dot(q, c), 0.0, ra));
+				return max(l, m * sign(c.y * q.x - c.x * q.y));
+			}
 
-                float d = Raymarch(ro, rd);
+			//cut sphere
+			float sdCutSphere(float3 p, float r, float h)
+			{
+				float w = sqrt(r * r - h * h);
 
-                float mask = dot(uv, uv);
+				float2 q = float2(length(p.xz), p.y);
+				float s = max((h - r) * q.x * q.x + w * w * (h + r - 2.0 * q.y), h * q.x - w * q.y);
+				return (s < 0.0) ? length(q) - r :
+					(q.x < w) ? h - q.y :
+					length(q - float2(w, h));
+			}
 
-                if (d < max_dist) {
-                    //col.r = 1;
-                    float3 p = ro + rd * d;
-                    float3 n = GetNormal(p);
-                    col.rgb = n;
-                }
- 
+			//cut hollow sphere
+			float sdCutHollowSphere(float3 p, float r, float h, float t)
+			{
+				float w = sqrt(r * r - h * h);
+				float2 q = float2(length(p.xz), p.y);
+				return ((h * q.x < w* q.y) ? length(q - float2(w, h)) :
+					abs(length(q) - r)) - t;
+			}
+
+			//death star
+			float sdDeathStar(float3 p, float ra, float rb, float d)
+			{
+				float a = (ra * ra - rb * rb + d * d) / (2.0 * d);
+				float b = sqrt(max(ra * ra - a * a, 0.0));
+
+				float2 p2 = float2(p.x, length(p.yz));
+				if (p2.x * b - p2.y * a > d * max(b - p2.y, 0.0))
+					return length(p2 - float2(a, b));
+				else
+					return max((length(p2) - ra),
+						-(length(p2 - float2(d, 0)) - rb));
+			}
+
+			//round cone
+			float sdRoundCone(float3 p, float r1, float r2, float h)
+			{
+				float b = (r1 - r2) / h;
+				float a = sqrt(1.0 - b * b);
+				float2 q = float2(length(p.xz), p.y);
+				float k = dot(q, float2(-b, a));
+				if (k < 0.0) return length(q) - r1;
+				if (k > a * h) return length(q - float2(0.0, h)) - r2;
+				return dot(q, float2(a, b)) - r1;
+			}
+
+			//ellipsoid
+			float sdEllipsoid(float3 p, float3 r)
+			{
+				float k0 = length(p / r);
+				float k1 = length(p / (r * r));
+				return k0 * (k0 - 1.0) / k1;
+			}
+
+			//rhombus
+			float sdRhombus(float3 p, float la, float lb, float h, float ra)
+			{
+				p = abs(p);
+				float2 b = float2(la, lb);
+				float f = clamp((ndot(b, b - 2.0 * p.xz)) / dot(b, b), -1.0, 1.0);
+				float2 q = float2(length(p.xz - 0.5 * b * float2(1.0 - f, 1.0 + f)) * sign(p.x * b.y + p.z * b.x - b.x * b.y) - ra, p.y - h);
+				return min(max(q.x, q.y), 0.0) + length(max(q, 0.0));
+			}
+
+			//octahedron
+			float sdOctahedron(float3 p, float s)
+			{
+				p = abs(p);
+				float m = p.x + p.y + p.z - s;
+				float3 q;
+				if (3.0 * p.x < m) q = p.xyz;
+				else if (3.0 * p.y < m) q = p.yzx;
+				else if (3.0 * p.z < m) q = p.zxy;
+				else return m * 0.57735027;
+
+				float k = clamp(0.5 * (q.z - q.y + s), 0.0, s);
+				return length(float3(q.x, q.y - s + k, q.z - k));
+			}
+
+			//pyramid
+			float sdPyramid(float3 p, float h)
+			{
+				float m2 = h * h + 0.25;
+
+				p.xz = abs(p.xz);
+				p.xz = (p.z > p.x) ? p.zx : p.xz;
+				p.xz -= 0.5;
+
+				float3 q = float3(p.z, h * p.y - 0.5 * p.x, h * p.x + 0.5 * p.y);
+
+				float s = max(-q.x, 0.0);
+				float t = clamp((q.y - 0.5 * p.z) / (m2 + 0.25), 0.0, 1.0);
+
+				float a = m2 * (q.x + s) * (q.x + s) + q.y * q.y;
+				float b = m2 * (q.x + 0.5 * t) * (q.x + 0.5 * t) + (q.y - m2 * t) * (q.y - m2 * t);
+
+				float d2 = min(q.y, -q.x * m2 - q.y * 0.5) > 0.0 ? 0.0 : min(a, b);
+
+				return sqrt((d2 + q.z * q.z) / m2) * sign(max(q.z, -p.y));
+			}
+
+			//triangle
+			float udTriangle(float3 p, float3 a, float3 b, float3 c)
+			{
+				float3 ba = b - a; float3 pa = p - a;
+				float3 cb = c - b; float3 pb = p - b;
+				float3 ac = a - c; float3 pc = p - c;
+				float3 nor = cross(ba, ac);
+
+				return sqrt(
+					(sign(dot(cross(ba, nor), pa)) +
+						sign(dot(cross(cb, nor), pb)) +
+						sign(dot(cross(ac, nor), pc)) < 2.0)
+					?
+					min(min(
+						dot2(ba * clamp(dot(ba, pa) / dot2(ba), 0.0, 1.0) - pa),
+						dot2(cb * clamp(dot(cb, pb) / dot2(cb), 0.0, 1.0) - pb)),
+						dot2(ac * clamp(dot(ac, pc) / dot2(ac), 0.0, 1.0) - pc))
+					:
+					dot(nor, pa) * dot(nor, pa) / dot2(nor));
+			}
+
+			//quad
+			float udQuad(float3 p, float3 a, float3 b, float3 c, float3 d)
+			{
+				float3 ba = b - a; float3 pa = p - a;
+				float3 cb = c - b; float3 pb = p - b;
+				float3 dc = d - c; float3 pc = p - c;
+				float3 ad = a - d; float3 pd = p - d;
+				float3 nor = cross(ba, ad);
+
+				return sqrt(
+					(sign(dot(cross(ba, nor), pa)) +
+						sign(dot(cross(cb, nor), pb)) +
+						sign(dot(cross(dc, nor), pc)) +
+						sign(dot(cross(ad, nor), pd)) < 3.0)
+					?
+					min(min(min(
+						dot2(ba * clamp(dot(ba, pa) / dot2(ba), 0.0, 1.0) - pa),
+						dot2(cb * clamp(dot(cb, pb) / dot2(cb), 0.0, 1.0) - pb)),
+						dot2(dc * clamp(dot(dc, pc) / dot2(dc), 0.0, 1.0) - pc)),
+						dot2(ad * clamp(dot(ad, pd) / dot2(ad), 0.0, 1.0) - pd))
+					:
+					dot(nor, pa) * dot(nor, pa) / dot2(nor));
+			}
+
+			float GetDist(Shape shape, float3 p) {				
+
+				switch (shape.shapeIndex) {
+				case 0:
+					return sdSphere(p, shape.dimensions.a);
+				case 1:
+					return sdTorus(p, float2(shape.dimensions.a, shape.dimensions.b));
+				case 2:
+					return sdCappedTorus(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 3:
+					return sdLink(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 4:
+					return sdCone(p, shape.dimensions.a, shape.dimensions.b);
+				case 5:
+					return sdInfCone(p, shape.dimensions.a);
+				case 6:
+					return sdPlane(p, shape.dimensions.a, shape.dimensions.b);
+				case 7:
+					return sdHexPrism(p, float2(shape.dimensions.a, shape.dimensions.b));
+				case 8:
+					return sdTriPrism(p, float2(shape.dimensions.a, shape.dimensions.b));
+				case 9:
+					return sdCapsule(p, float3(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c),
+						float3(shape.dimensions.d, shape.dimensions.e, shape.dimensions.f),
+						shape.dimensions.g);
+				case 10:
+					return sdInfiniteCylinder(p, float3(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c));						
+				case 11:
+					return sdBox(p, shape.dimensions.a);
+				case 12:
+					return sdRoundBox(p, shape.dimensions.a, shape.dimensions.b);
+				case 13:
+					return sdRoundedCylinder(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 14:
+					return sdCappedCone(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 15:
+					return sdBoxFrame(p, float3(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c), shape.dimensions.d);
+				case 16:
+					return sdSolidAngle(p, float2(shape.dimensions.a, shape.dimensions.b), shape.dimensions.c);
+				case 17:
+					return sdCutSphere(p, shape.dimensions.a, shape.dimensions.b);
+				case 18:
+					return sdCutHollowSphere(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 19:
+					return sdDeathStar(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 20:
+					return sdRoundCone(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 21:
+					return sdEllipsoid(p, float3(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c));
+				case 22:
+					return sdRhombus(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d);
+				case 23:
+					return sdOctahedron(p, shape.dimensions.a);
+				case 24:
+					return sdPyramid(p, shape.dimensions.a);
+				case 25:
+					return udTriangle(p, float3(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c),
+						float3(shape.dimensions.d, shape.dimensions.e, shape.dimensions.f),
+						float3(shape.dimensions.g, shape.dimensions.h, shape.dimensions.i));
+				case 26:
+					return udQuad(p, float3(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c),
+						float3(shape.dimensions.d, shape.dimensions.e, shape.dimensions.f),
+						float3(shape.dimensions.g, shape.dimensions.h, shape.dimensions.i),
+						float3(shape.dimensions.j, shape.dimensions.k, shape.dimensions.l));
+				}
+				
+				return 0;
+			
+			}			
+
+			float Raymarch(float3 ro, float3 rd) {
+				float d_origin = 0;
+				float d_scene = 0;
+				Shape _shape = shapes[0];
+
+				for (int i = 0; i < max_steps; i++) {
+					float3 p = ro + d_origin * rd;
+					d_scene = GetDist(_shape, p);
+					d_origin += d_scene;
+
+					if (d_scene < surf_dist || d_origin > max_dist) break;
+				}
+
+				return d_origin;
+			}
+
+			float3 GetNormal(float3 p) {
+				Shape _shape = shapes[0];
+				float2 e = float2(1e-2, 0);
+				float3 n = GetDist(_shape, p) - float3(GetDist(_shape, p - e.xyy), GetDist(_shape, p - e.yxy), GetDist(_shape, p - e.yyx));
+				return normalize(n);
+			}
+
+			//for pixels
+			fixed4 frag(v2f i) : SV_Target
+			{
+				// sample the texture
+				float2 uv = i.uv - .5f;
+				float3 ro = i.ro;
+				float3 rd = i.hitPos - ro;
+				rd = normalize(rd);
+
+				//fixed4 tex = tex2D(_MainTex, i.uv);
+				fixed4 col = 0;
+				//col.rgb = ray_direction;
+
+				float d = Raymarch(ro, rd);
+
+				float mask = dot(uv, uv);
+
+				if (d < max_dist) {
+					//col.r = 1;
+					float3 p = ro + rd * d;
+					float3 n = GetNormal(p);
+					col.rgb = n;
+				}
+
+				else
+					discard;
+
 ;
-                return col;
-            }
-            ENDCG
-        }
-    }
+				return col;
+			}
+			ENDCG
+		}
+	}
+
 }
