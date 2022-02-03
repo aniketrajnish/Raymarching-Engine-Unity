@@ -72,8 +72,8 @@ Shader "Raymarching/Raymarcher"
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				o.ro = mul(unity_WorldToObject, float4(_WorldSpaceCameraPos, 1)); //world space
-				o.hitPos = mul(unity_ObjectToWorld, v.vertex);
-				//o.hitPos = v.vertex;
+				//o.hitPos = mul(unity_ObjectToWorld, v.vertex);
+				o.hitPos = v.vertex;
 				return o;
 			}						
 
@@ -89,11 +89,11 @@ Shader "Raymarching/Raymarcher"
 				case 3:
 					return sdLink(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
 				case 4:
-					return sdCone(p, shape.dimensions.a, shape.dimensions.b);
+					return sdCone(p, shape.dimensions.a, float2(shape.dimensions.b, shape.dimensions.c));
 				case 5:
-					return sdInfCone(p, shape.dimensions.a);
+					return sdInfCone(p, float2(shape.dimensions.a, shape.dimensions.b));
 				case 6:
-					return sdPlane(p, shape.dimensions.a, shape.dimensions.b);
+					return sdPlane(p, float3(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c), shape.dimensions.d);
 				case 7:
 					return sdHexPrism(p, float2(shape.dimensions.a, shape.dimensions.b));
 				case 8:
@@ -143,9 +143,7 @@ Shader "Raymarching/Raymarcher"
 						float3(shape.dimensions.j, shape.dimensions.k, shape.dimensions.l));
 				}
 				
-				float d;
-				d = 0;
-				return d;
+				return 0;
 			
 			}			
 
@@ -175,6 +173,7 @@ Shader "Raymarching/Raymarcher"
 			//for pixels
 			fixed4 frag(v2f i) : SV_Target
 			{
+                Shape _shape = shapes[0];
 				// sample the texture
 				float2 uv = i.uv - .5f;
 				float3 ro = i.ro;
@@ -193,7 +192,7 @@ Shader "Raymarching/Raymarcher"
 					//col.r = 1;
 					float3 p = ro + rd * d;
 					float3 n = GetNormal(p);
-					col.rgb = n;
+					col.rgb = _shape.col + n;
 				}
 
 				else

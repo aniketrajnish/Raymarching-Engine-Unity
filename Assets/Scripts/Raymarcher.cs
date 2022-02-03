@@ -8,10 +8,7 @@ public class Raymarcher : MonoBehaviour
 {
     List<ComputeBuffer> disposable = new List<ComputeBuffer>();
     List<RaymarchRenderer> renderers;
-    ComputeBuffer shapeBuffer;
-   
-    
-
+    ComputeBuffer shapeBuffer; 
     [SerializeField] Material raymarchMaterial;
 
     private void Update()
@@ -34,9 +31,7 @@ public class Raymarcher : MonoBehaviour
 
         for (int i = 0; i < renderers.Count; i++)
         {
-            //yaha pe index nikal rha
             var s = renderers[i];
-            //print((int)s.shape);
             Vector3 color = new Vector3(s.color.r, s.color.g, s.color.b);
             Properties p = new Properties()
             {

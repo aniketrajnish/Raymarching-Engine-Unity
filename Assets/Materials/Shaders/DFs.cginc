@@ -35,7 +35,7 @@ float ndot(float2 a, float2 b) {
 			}
 
 			//cone
-			float sdCone(float3 p, float3 c, float h)
+			float sdCone(float3 p, float2 c, float h)
 			{
 				float2 q = h * float2(c.x / c.y, -1.0);
 
@@ -49,8 +49,8 @@ float ndot(float2 a, float2 b) {
 			}
 
 			//infinite cone
-			float sdInfCone(float3 p, float3 c) {
-				float2 q = float2(length(p.xz), -p.z);
+			float sdInfCone(float3 p, float2 c) {
+				float2 q = float2(length(p.xz), -p.y);
 				float d = length(q - c * max(dot(q, c), 0));
 				return d * ((q.x * c.y - q.y * c.x < 0) ? -1 : 1);
 			}
