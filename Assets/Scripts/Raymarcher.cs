@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 [ExecuteInEditMode]
 public class Raymarcher : MonoBehaviour
@@ -10,23 +11,32 @@ public class Raymarcher : MonoBehaviour
     List<RaymarchRenderer> renderers;
     ComputeBuffer shapeBuffer; 
     [SerializeField] Material raymarchMaterial;
-
+    private void OnEnable()
+    {
+        EditorApplication.update += OnUpdate;
+    }   
+    private void OnUpdate()
+    {
+        RaymarchRender();
+        EditorApplication.QueuePlayerLoopUpdate();
+    }    
     private void Update()
     {
         RaymarchRender();
     }
     private void OnDisable()
     {
+        EditorApplication.update -= OnUpdate;
         foreach (var buffer in disposable)
         {
             buffer.Dispose();
         }
     }
+   
     void RaymarchRender()
     {
         renderers = new List<RaymarchRenderer>(FindObjectsOfType<RaymarchRenderer>());
        
-        //int len = Enum.GetNames(typeof(RaymarchRenderer.Shape)).Length;
         Properties[] properties = new Properties[renderers.Count];
 
         for (int i = 0; i < renderers.Count; i++)
@@ -39,7 +49,6 @@ public class Raymarcher : MonoBehaviour
                 shapeIndex = (int)s.shape,
                 dimensions = Helpers.GetDimensionVectors((int)s.shape)
             };
-            
             properties[i] = p;
         }
         

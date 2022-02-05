@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-
 #if UNITY_EDITOR
 using UnityEditor;
 
 [CustomEditor(typeof(RaymarchRenderer))]
+
 public class PropertiesEditor : Editor
 {
     public override void OnInspectorGUI()
@@ -13,12 +10,12 @@ public class PropertiesEditor : Editor
         base.OnInspectorGUI();
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Dimensions");
-        RaymarchRenderer rr = (RaymarchRenderer)target;        
+        RaymarchRenderer rr = (RaymarchRenderer)target;
 
-        switch((int)rr.shape)
+        switch ((int)rr.shape)
         {
             case 0:
-                SphereDimensions.radius = EditorGUILayout.FloatField("Radius", SphereDimensions.radius);
+                SphereDimensions.radius = EditorGUILayout.FloatField("Radius", SphereDimensions.radius);                
                 break;
             case 1:
                 TorusDimensions.thickness = EditorGUILayout.Vector2Field("Thickness", TorusDimensions.thickness);
@@ -128,8 +125,7 @@ public class PropertiesEditor : Editor
                 QuadDimensions.sideC = EditorGUILayout.Vector3Field("Side C", QuadDimensions.sideC);
                 QuadDimensions.sideD = EditorGUILayout.Vector3Field("Side D", QuadDimensions.sideD);
                 break;
-        }
-
+        }       
     }  
 }
 #endif

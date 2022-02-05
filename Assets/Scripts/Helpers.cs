@@ -1,11 +1,9 @@
 using System;
 using UnityEngine;
-
-[ExecuteInEditMode]
 public class Helpers : MonoBehaviour
 {
     public static vector12 GetDimensionVectors(int i)
-    {
+    {        
         int len = Enum.GetNames(typeof(RaymarchRenderer.Shape)).Length;
 
         vector12[] dimensions = new vector12[len];

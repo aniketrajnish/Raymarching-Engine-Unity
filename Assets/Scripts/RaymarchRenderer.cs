@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class RaymarchRenderer : MonoBehaviour
 {
     public enum Shape { 
@@ -36,6 +35,8 @@ public class RaymarchRenderer : MonoBehaviour
 
     public Shape shape;
     public Color color;
+
+    
 }
 public struct SphereDimensions
 {
