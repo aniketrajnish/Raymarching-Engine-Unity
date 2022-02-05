@@ -10,9 +10,28 @@ public class Raymarcher : MonoBehaviour
     List<ComputeBuffer> disposable = new List<ComputeBuffer>();
     List<RaymarchRenderer> renderers;
     ComputeBuffer shapeBuffer; 
-    [SerializeField] Material raymarchMaterial;
+    Material raymarchMaterial;
+    [SerializeField] Shader shader;
+    public Material _raymarchMaterial
+    {
+        get
+        {
+            if (!raymarchMaterial && shader)
+            {
+                raymarchMaterial = new Material(shader);
+                raymarchMaterial.hideFlags = HideFlags.HideAndDontSave;
+            }
+
+            return raymarchMaterial;
+        }
+    }
+    private void Start()
+    {
+        GetComponent<Renderer>().material = _raymarchMaterial;
+     }
     private void OnEnable()
     {
+        GetComponent<MeshRenderer>().material = _raymarchMaterial;
         EditorApplication.update += OnUpdate;
     }   
     private void OnUpdate()
@@ -50,12 +69,15 @@ public class Raymarcher : MonoBehaviour
                 dimensions = Helpers.GetDimensionVectors((int)s.shape)
             };
             properties[i] = p;
+
+            if (renderers[i] == GetComponent<RaymarchRenderer>())            
+                _raymarchMaterial.SetInt("rank", i);            
         }
         
         shapeBuffer = new ComputeBuffer(renderers.Count, 64);
         shapeBuffer.SetData(properties);
-        
-        raymarchMaterial.SetBuffer("shapes", shapeBuffer);
+
+        _raymarchMaterial.SetBuffer("shapes", shapeBuffer);        
         disposable.Add(shapeBuffer);
     }
     

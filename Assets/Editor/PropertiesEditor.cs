@@ -9,7 +9,7 @@ public class PropertiesEditor : Editor
     {
         base.OnInspectorGUI();
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Dimensions");
+        EditorGUILayout.LabelField("Dimensions", EditorStyles.boldLabel);
         RaymarchRenderer rr = (RaymarchRenderer)target;
 
         switch ((int)rr.shape)

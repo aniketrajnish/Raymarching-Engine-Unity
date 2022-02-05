@@ -60,7 +60,8 @@ Shader "Raymarching/Raymarcher"
 				vector12 dimensions;
 			};			
 
-			StructuredBuffer<Shape> shapes;			
+			StructuredBuffer<Shape> shapes;
+			int rank;
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
@@ -150,7 +151,7 @@ Shader "Raymarching/Raymarcher"
 			float Raymarch(float3 ro, float3 rd) {
 				float d_origin = 0;
 				float d_scene = 0;
-				Shape _shape = shapes[0];
+				Shape _shape = shapes[rank];
 
 				for (int i = 0; i < max_steps; i++) {
 					float3 p = ro + d_origin * rd;
@@ -164,7 +165,7 @@ Shader "Raymarching/Raymarcher"
 			}
 
 			float3 GetNormal(float3 p) {
-				Shape _shape = shapes[0];
+				Shape _shape = shapes[rank];
 				float2 e = float2(1e-2, 0);
 				float3 n = GetDist(_shape, p) - float3(GetDist(_shape, p - e.xyy), GetDist(_shape, p - e.yxy), GetDist(_shape, p - e.yyx));
 				return normalize(n);
@@ -173,23 +174,20 @@ Shader "Raymarching/Raymarcher"
 			//for pixels
 			fixed4 frag(v2f i) : SV_Target
 			{
-                Shape _shape = shapes[0];
+                Shape _shape = shapes[rank];
 				// sample the texture
 				float2 uv = i.uv - .5f;
 				float3 ro = i.ro;
 				float3 rd = i.hitPos - ro;
 				rd = normalize(rd);
 
-				//fixed4 tex = tex2D(_MainTex, i.uv);
 				fixed4 col = 0;
-				//col.rgb = ray_direction;
 
 				float d = Raymarch(ro, rd);
 
 				float mask = dot(uv, uv);
 
 				if (d < max_dist) {
-					//col.r = 1;
 					float3 p = ro + rd * d;
 					float3 n = GetNormal(p);
 					col.rgb = _shape.col + n;
