@@ -89,6 +89,9 @@ public class Helpers : MonoBehaviour
         //quad
         dimensions[26] = new vector12(QuadDimensions.sideA.x, QuadDimensions.sideA.y, QuadDimensions.sideA.z, QuadDimensions.sideB.x, QuadDimensions.sideB.y, QuadDimensions.sideB.z, QuadDimensions.sideC.x, QuadDimensions.sideC.y, QuadDimensions.sideC.z, QuadDimensions.sideD.x, QuadDimensions.sideD.y, QuadDimensions.sideD.z);
 
+        //fractals
+        dimensions[27] = new vector12(FractalDimenisons.i, FractalDimenisons.s, FractalDimenisons.o, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
         return dimensions[i];
     }    
     public static float[] GetDimensionArray(int i)

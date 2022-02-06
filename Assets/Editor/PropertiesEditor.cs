@@ -125,6 +125,11 @@ public class PropertiesEditor : Editor
                 QuadDimensions.sideC = EditorGUILayout.Vector3Field("Side C", QuadDimensions.sideC);
                 QuadDimensions.sideD = EditorGUILayout.Vector3Field("Side D", QuadDimensions.sideD);
                 break;
+            case 27:
+                FractalDimenisons.i = EditorGUILayout.FloatField("Iterations", FractalDimenisons.i);
+                FractalDimenisons.s = EditorGUILayout.FloatField("Size", FractalDimenisons.s);
+                FractalDimenisons.o = EditorGUILayout.FloatField("Offset", FractalDimenisons.o);
+                break;
         }       
     }  
 }

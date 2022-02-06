@@ -142,6 +142,8 @@ Shader "Raymarching/Raymarcher"
 						float3(shape.dimensions.d, shape.dimensions.e, shape.dimensions.f),
 						float3(shape.dimensions.g, shape.dimensions.h, shape.dimensions.i),
 						float3(shape.dimensions.j, shape.dimensions.k, shape.dimensions.l));
+				case 27:
+					return sdFractal(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
 				}
 				
 				return 0;
@@ -174,7 +176,7 @@ Shader "Raymarching/Raymarcher"
 			//for pixels
 			fixed4 frag(v2f i) : SV_Target
 			{
-                Shape _shape = shapes[rank];
+                Shape _shape = shapes[rank];                
 				// sample the texture
 				float2 uv = i.uv - .5f;
 				float3 ro = i.ro;

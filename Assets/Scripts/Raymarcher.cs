@@ -28,10 +28,28 @@ public class Raymarcher : MonoBehaviour
     private void Start()
     {
         GetComponent<Renderer>().material = _raymarchMaterial;
-     }
-    private void OnEnable()
+    }
+    private void OnRenderImage(RenderTexture source, RenderTexture destination)
+    {
+        if (!raymarchMaterial)
+        {
+            Graphics.Blit(source, destination);
+        }
+
+        RenderTexture.active = destination;
+        _raymarchMaterial.SetTexture("_MainTex", source);
+
+        foreach (var buffer in disposable)
+        {
+            buffer.Dispose();
+        }
+    }
+    private void Awake()
     {
         GetComponent<MeshRenderer>().material = _raymarchMaterial;
+    }
+    private void OnEnable()
+    {
         EditorApplication.update += OnUpdate;
     }   
     private void OnUpdate()

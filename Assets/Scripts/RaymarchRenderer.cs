@@ -30,13 +30,12 @@ public class RaymarchRenderer : MonoBehaviour
         Octahedron,
         Pyramid,
         Triangle,
-        Quad
+        Quad,
+        Fractal
     };    
 
     public Shape shape;
-    public Color color;
-
-    
+    public Color color;    
 }
 public struct SphereDimensions
 {
@@ -176,3 +175,11 @@ public struct QuadDimensions
     public static Vector3 sideC = new Vector3(.9f, .3f, .5f);
     public static Vector3 sideD = new Vector3(.1f, .2f, .5f);
 };
+
+public struct FractalDimenisons
+{
+    public static float i = 50;
+    public static float s = 1.02f;
+    public static float o = 2;
+};
+

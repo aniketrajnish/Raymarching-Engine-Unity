@@ -290,3 +290,17 @@ float ndot(float2 a, float2 b) {
 					:
 					dot(nor, pa) * dot(nor, pa) / dot2(nor));
 			}
+
+			//fractal
+			float sdFractal(float3 z, float i, float s, float o)	
+			{
+				int n = 0;
+				while (n < i) {
+				   if(z.x+z.y<0) z.xy = -z.yx; // fold 1
+				   if(z.x+z.z<0) z.xz = -z.zx; // fold 2
+				   if(z.y+z.z<0) z.zy = -z.yz; // fold 3	
+				   z = z*s - o*(s-1.0);
+				   n++;
+				}
+				return (length(z) ) * pow(s, -float(n));
+			}
