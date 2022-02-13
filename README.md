@@ -9,9 +9,9 @@ https://user-images.githubusercontent.com/58925008/152696897-970a5a67-9007-4f17-
 * Append the distance functions in DFs.cginc like
 ```
 float sdShape(float3 p, dimension parameters)	
-			{
-			     // distance function here
-			}
+{
+    // distance function here
+}
 ```   
 * Add the shape in Shape enum and create a struct for its default dimension parameters in RaymarchRenderer.cs 
 ```
@@ -34,16 +34,16 @@ public static vector12 GetDimensionVectors(int i)
 * Finally make a custom editor for your dimensions in the PropertiesEdior.cs
 ```
 public override void OnInspectorGUI()
+{
+    base.OnInspectorGUI();
+    EditorGUILayout.Space();
+    EditorGUILayout.LabelField("Dimensions", EditorStyles.boldLabel);
+    RaymarchRenderer rr = (RaymarchRenderer)target;
+    switch ((int)rr.shape)
     {
-        base.OnInspectorGUI();
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Dimensions", EditorStyles.boldLabel);
-        RaymarchRenderer rr = (RaymarchRenderer)target;
-
-        switch ((int)rr.shape)
-        {
-            //property editor here
-        }
+        //property editor here
+    }
+}
 ```
 * Attach RaymarchRenderer.cs and Raymarcher.cs to a gameobject having a mesh renderer and set the properties and type of shape to render in the inspector.
 
