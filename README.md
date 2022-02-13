@@ -31,7 +31,7 @@ public static vector12 GetDimensionVectors(int i)
     //dimension array
 }
 ```
-* Finally make a custom editor for your dimensions in the PropertiesEdior.cs
+* Finally make a custom editor for your shape in the PropertiesEdior.cs
 ```
 public override void OnInspectorGUI()
 {
