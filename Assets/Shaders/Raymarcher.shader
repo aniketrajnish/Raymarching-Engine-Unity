@@ -18,9 +18,9 @@ Shader "Raymarching/Raymarcher"
 			#include "UnityCG.cginc"
             #include"DFs.cginc"
 
-            #define max_steps 100
-            #define max_dist 100
-            #define surf_dist 1e-3
+            #define max_steps 50
+            #define max_dist 25
+            #define surf_dist 1e-2
             #define anti_aliasing 3
             
 			struct appdata

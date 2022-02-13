@@ -304,3 +304,4 @@ float ndot(float2 a, float2 b) {
 				}
 				return (length(z) ) * pow(s, -float(n));
 			}
+			

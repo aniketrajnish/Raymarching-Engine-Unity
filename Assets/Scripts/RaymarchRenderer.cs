@@ -178,8 +178,8 @@ public struct QuadDimensions
 
 public struct FractalDimenisons
 {
-    public static float i = 50;
-    public static float s = 1.02f;
+    public static float i = 20;
+    public static float s = 1.25f;
     public static float o = 2;
 };
 
