@@ -13,7 +13,7 @@ float sdShape(float3 p, // dimension parameters)
     // distance function here
 }
 ```   
-* Appednd the distance function created above in `GetDist()` in `Raymarcher.shader` 
+* Append the distance function created above in `GetDist()` in `Raymarcher.shader` 
 ```
 float GetDist(Shape shape, float3 p) {
     switch (shape.shapeIndex) {
