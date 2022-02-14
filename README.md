@@ -8,11 +8,20 @@ https://user-images.githubusercontent.com/58925008/152696897-970a5a67-9007-4f17-
 
 * Append the distance functions in `DFs.cginc` like
 ```
-float sdShape(float3 p, dimension parameters)	
+float sdShape(float3 p, // dimension parameters)	
 {
     // distance function here
 }
 ```   
+* Appednd the distance function created above in `GetDist()` in `Raymarcher.shader` 
+```
+float GetDist(Shape shape, float3 p) {
+    switch (shape.shapeIndex) {
+    case n:
+        return sdShape(float3 p, // dimension parameters);
+    }
+}
+```
 * Add the shape in Shape enum and create a struct for its default dimension parameters in `RaymarchRenderer.cs` 
 ```
 public enum Shape {
