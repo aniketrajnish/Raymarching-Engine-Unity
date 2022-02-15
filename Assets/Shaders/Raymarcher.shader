@@ -18,10 +18,9 @@ Shader "Raymarching/Raymarcher"
 			#include "UnityCG.cginc"
             #include"DFs.cginc"
 
-            #define max_steps 50
+            #define max_steps 25
             #define max_dist 25
             #define surf_dist 1e-2
-            #define anti_aliasing 3
 
 			uniform float wPos;
 			uniform float3 wRot;
@@ -148,7 +147,7 @@ Shader "Raymarching/Raymarcher"
 				case 27:
 					return sdFractal(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
 				case 28:
-				    return sdTesseract(p, wPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d), float3(0,0,0));
+				    return sdTesseract(p, wPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d), wRot);
 				}
 				
 				return 0;
