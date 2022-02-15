@@ -148,7 +148,7 @@ Shader "Raymarching/Raymarcher"
 				case 27:
 					return sdFractal(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
 				case 28:
-				    return sdTesseract(p, wPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d));
+				    return sdTesseract(p, wPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d), float3(0,0,0));
 				}
 				
 				return 0;
