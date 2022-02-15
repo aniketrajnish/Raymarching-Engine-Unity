@@ -11,7 +11,7 @@ public class Raymarcher : MonoBehaviour
     List<RaymarchRenderer> renderers;
     ComputeBuffer shapeBuffer; 
     Material raymarchMaterial;
-    [SerializeField] Shader shader;
+    [SerializeField] Shader shader;    
     public Material _raymarchMaterial
     {
         get
@@ -48,7 +48,7 @@ public class Raymarcher : MonoBehaviour
     {
         GetComponent<MeshRenderer>().material = _raymarchMaterial;
     }
-    private void OnEnable()
+/*    private void OnEnable()
     {
         EditorApplication.update += OnUpdate;
     }   
@@ -56,14 +56,14 @@ public class Raymarcher : MonoBehaviour
     {
         RaymarchRender();
         EditorApplication.QueuePlayerLoopUpdate();
-    }    
-    private void Update()
+    }   
+*/    private void Update()
     {
         RaymarchRender();
     }
     private void OnDisable()
     {
-        EditorApplication.update -= OnUpdate;
+        //EditorApplication.update -= OnUpdate;
         foreach (var buffer in disposable)
         {
             buffer.Dispose();
@@ -96,6 +96,7 @@ public class Raymarcher : MonoBehaviour
         shapeBuffer.SetData(properties);
 
         _raymarchMaterial.SetBuffer("shapes", shapeBuffer);        
+        _raymarchMaterial.SetFloat("wPos", GetComponent<RaymarchRenderer>().wPos);        
         disposable.Add(shapeBuffer);
     }
     

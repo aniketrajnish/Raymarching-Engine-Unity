@@ -304,4 +304,13 @@ float ndot(float2 a, float2 b) {
 				}
 				return (length(z) ) * pow(s, -float(n));
 			}
+
+			//tesseract
+			float sdTesseract(float3 p, float w, float4 s) {
+			    float4 p4 = float4(p,w);
+				float4 d = abs(p4) - s;
+				return min(max(d.x, max(d.y, max(d.z, d.w))), 0.0) + length(max(d, 0.0));
+			}
+
+
 			

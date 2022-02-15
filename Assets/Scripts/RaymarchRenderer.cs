@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 public class RaymarchRenderer : MonoBehaviour
 {
+    [HideInInspector] public float wPos;
     public enum Shape { 
         Shpere,
         Torus,
@@ -31,7 +32,8 @@ public class RaymarchRenderer : MonoBehaviour
         Pyramid,
         Triangle,
         Quad,
-        Fractal
+        Fractal,
+        Tesseract
     };    
 
     public Shape shape;
@@ -178,8 +180,13 @@ public struct QuadDimensions
 
 public struct FractalDimenisons
 {
-    public static float i = 20;
+    public static float i = 10;
     public static float s = 1.25f;
     public static float o = 2;
 };
+public struct TesseractDimensions
+{
+    public static Vector4 size = new Vector4(.25f, .25f, .25f, .25f);
+};
+
 

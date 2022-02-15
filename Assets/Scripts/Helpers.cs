@@ -3,7 +3,7 @@ using UnityEngine;
 public class Helpers : MonoBehaviour
 {
     public static vector12 GetDimensionVectors(int i)
-    {        
+    {
         int len = Enum.GetNames(typeof(RaymarchRenderer.Shape)).Length;
 
         vector12[] dimensions = new vector12[len];
@@ -92,8 +92,11 @@ public class Helpers : MonoBehaviour
         //fractals
         dimensions[27] = new vector12(FractalDimenisons.i, FractalDimenisons.s, FractalDimenisons.o, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+        //tesseract
+        dimensions[28] = new vector12(TesseractDimensions.size.x, TesseractDimensions.size.y, TesseractDimensions.size.z, TesseractDimensions.size.w, 0, 0, 0, 0, 0, 0, 0, 0);
+
         return dimensions[i];
-    }    
+    }
     public static float[] GetDimensionArray(int i)
     {
         int len = Enum.GetNames(typeof(RaymarchRenderer.Shape)).Length;
@@ -140,22 +143,22 @@ public class Helpers : MonoBehaviour
         dimensions[12] = new float[] { .5f, .1f };
 
         //rounded cylinder
-        dimensions[13] = new float[] { .5f, .1f, .5f};
+        dimensions[13] = new float[] { .5f, .1f, .5f };
 
         //capped cone
-        dimensions[14] = new float[] { .5f, .5f, .1f};
+        dimensions[14] = new float[] { .5f, .5f, .1f };
 
         //box frame
-        dimensions[15] = new float[] { .5f, .3f};
+        dimensions[15] = new float[] { .5f, .3f };
 
         //solid angle
-        dimensions[16] = new float[] { .25f, .25f, .5f};
+        dimensions[16] = new float[] { .25f, .25f, .5f };
 
         //cut sphere
-        dimensions[17] = new float[] { .5f, .1f};
+        dimensions[17] = new float[] { .5f, .1f };
 
         //hollow sphere
-        dimensions[18] = new float[] { .5f, .5f, .1f};
+        dimensions[18] = new float[] { .5f, .5f, .1f };
 
         //death star
         dimensions[19] = new float[] { .5f, .35f, .5f };
@@ -167,20 +170,20 @@ public class Helpers : MonoBehaviour
         dimensions[21] = new float[] { .18f, .3f, .02f };
 
         //rhombus
-        dimensions[22] = new float[] { .6f, .2f, .02f, .02f};
+        dimensions[22] = new float[] { .6f, .2f, .02f, .02f };
 
         //octahedron
-        dimensions[23] = new float[] { .5f};
+        dimensions[23] = new float[] { .5f };
 
         //pyramid
-        dimensions[24] = new float[] { .5f};
+        dimensions[24] = new float[] { .5f };
 
         //triangle
-        dimensions[25] = new float[] { .1f, .1f, .1f, .2f, .2f, .2f, .3f, .3f, .3f};
+        dimensions[25] = new float[] { .1f, .1f, .1f, .2f, .2f, .2f, .3f, .3f, .3f };
 
         //quad
-        dimensions[26] = new float[] { .1f, .1f, .1f, .2f, .2f, .2f, .3f, .3f, .3f, .4f, .4f, .4f};
- 
+        dimensions[26] = new float[] { .1f, .1f, .1f, .2f, .2f, .2f, .3f, .3f, .3f, .4f, .4f, .4f };
+
         return dimensions[i];
     }
 }

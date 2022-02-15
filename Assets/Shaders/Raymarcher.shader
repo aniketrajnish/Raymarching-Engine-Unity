@@ -22,6 +22,9 @@ Shader "Raymarching/Raymarcher"
             #define max_dist 25
             #define surf_dist 1e-2
             #define anti_aliasing 3
+
+			uniform float wPos;
+			uniform float3 wRot;
             
 			struct appdata
 			{
@@ -144,6 +147,8 @@ Shader "Raymarching/Raymarcher"
 						float3(shape.dimensions.j, shape.dimensions.k, shape.dimensions.l));
 				case 27:
 					return sdFractal(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
+				case 28:
+				    return sdTesseract(p, wPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d));
 				}
 				
 				return 0;

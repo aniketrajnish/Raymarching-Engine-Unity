@@ -130,6 +130,10 @@ public class PropertiesEditor : Editor
                 FractalDimenisons.s = EditorGUILayout.FloatField("Size", FractalDimenisons.s);
                 FractalDimenisons.o = EditorGUILayout.FloatField("Offset", FractalDimenisons.o);
                 break;
+            case 28:
+                TesseractDimensions.size = EditorGUILayout.Vector4Field("Size", TesseractDimensions.size);
+                rr.wPos = EditorGUILayout.FloatField("W Position", rr.wPos);
+                break;
         }       
     }  
 }
