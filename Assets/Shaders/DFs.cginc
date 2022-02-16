@@ -308,6 +308,14 @@ float ndot(float2 a, float2 b) {
 			//tesseract
 			float sdTesseract(float3 p, float wPos, float4 s, float3 wRot) {
 			    float4 p4 = float4(p,wPos);
+
+				p4.xz = mul(p4.xz, float2x2(cos(wRot.y), sin(wRot.y), -sin(wRot.y), cos(wRot.y)));
+				p4.yz = mul(p4.yz, float2x2(cos(wRot.x), -sin(wRot.x), sin(wRot.x), cos(wRot.x)));
+				p4.xy = mul(p4.xy, float2x2(cos(wRot.z), -sin(wRot.z), sin(wRot.z), cos(wRot.z)));
+				p4.xw = mul(p4.xw, float2x2(cos(wRot.x), sin(wRot.x), -sin(wRot.x), cos(wRot.x)));
+				p4.zw = mul(p4.zw, float2x2(cos(wRot.z), -sin(wRot.z), sin(wRot.z), cos(wRot.z)));
+				p4.yw = mul(p4.yw, float2x2(cos(wRot.y), -sin(wRot.y), sin(wRot.y), cos(wRot.y)));
+
 				float4 d = abs(p4) - s;
 				return min(max(d.x, max(d.y, max(d.z, d.w))), 0.0) + length(max(d, 0.0));
 			}

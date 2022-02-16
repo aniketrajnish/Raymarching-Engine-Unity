@@ -4,6 +4,7 @@ using UnityEngine;
 public class RaymarchRenderer : MonoBehaviour
 {
     [HideInInspector] public float wPos;
+    [HideInInspector] public Vector3 wRot;
     public enum Shape { 
         Shpere,
         Torus,

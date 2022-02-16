@@ -133,6 +133,7 @@ public class PropertiesEditor : Editor
             case 28:
                 TesseractDimensions.size = EditorGUILayout.Vector4Field("Size", TesseractDimensions.size);
                 rr.wPos = EditorGUILayout.FloatField("W Position", rr.wPos);
+                rr.wRot = EditorGUILayout.Vector3Field("W Rotation", rr.wRot);
                 break;
         }       
     }  
