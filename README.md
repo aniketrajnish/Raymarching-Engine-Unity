@@ -1,5 +1,5 @@
 # Raymarching-Engine
- Writing a raymarching engine for Unity.<br><br>
+ Writing a raymarching engine for Unity.<br>
  
 https://user-images.githubusercontent.com/58925008/154227950-12a89419-72f7-4e28-a58c-eeeaf60a5637.mp4
 
