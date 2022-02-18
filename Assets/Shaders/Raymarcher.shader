@@ -19,7 +19,7 @@ Shader "Raymarching/Raymarcher"
             #include"DFs.cginc"
 
             #define max_steps 25
-            #define max_dist 25
+            #define max_dist 100
             #define surf_dist 1e-2
 
 			uniform float wPos;

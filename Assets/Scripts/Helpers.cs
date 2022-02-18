@@ -33,7 +33,7 @@ public class Helpers : MonoBehaviour
         dimensions[7] = new vector12(HexagonalPrismDimensions.h.x, HexagonalPrismDimensions.h.y, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
         //triangular prism
-        dimensions[8] = new vector12(TriangularPrism.h.x, TriangularPrism.h.y, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        dimensions[8] = new vector12(TriangularPrismDimensions.h.x, TriangularPrismDimensions.h.y, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
         //capsule
         dimensions[9] = new vector12(CapsuleDimensions.a.x, CapsuleDimensions.a.y, CapsuleDimensions.a.z, CapsuleDimensions.b.x, CapsuleDimensions.b.y, CapsuleDimensions.b.z, CapsuleDimensions.r, 0, 0, 0, 0, 0);

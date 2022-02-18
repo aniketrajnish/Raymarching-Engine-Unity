@@ -56,7 +56,7 @@ public class Raymarcher : MonoBehaviour
     {
         RaymarchRender();
         EditorApplication.QueuePlayerLoopUpdate();
-    }  
+    } 
     private void Update()
     {
         RaymarchRender();

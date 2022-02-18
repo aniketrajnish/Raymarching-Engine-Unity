@@ -296,9 +296,9 @@ float ndot(float2 a, float2 b) {
 			{
 				int n = 0;
 				while (n < i) {
-				   if(z.x+z.y<0) z.xy = -z.yx; // fold 1
-				   if(z.x+z.z<0) z.xz = -z.zx; // fold 2
-				   if(z.y+z.z<0) z.zy = -z.yz; // fold 3	
+				   if(z.x+z.y<0) z.xy = -z.yx; 
+				   if(z.x+z.z<0) z.xz = -z.zx; 
+				   if(z.y+z.z<0) z.zy = -z.yz; 	
 				   z = z*s - o*(s-1.0);
 				   n++;
 				}
