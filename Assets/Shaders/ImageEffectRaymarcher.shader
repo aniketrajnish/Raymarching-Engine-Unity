@@ -194,9 +194,9 @@ Shader "Makra/ImageEffectRaymarcher"
             }
             
             float distanceField(float3 p) {
-                float modx = sdFMod(p.x, 4);
-                float mody = sdFMod(p.y, 4);
-                float modz = sdFMod(p.z, 4);                
+                //float modx = sdFMod(p.x, 4);
+                //float mody = sdFMod(p.y, 4);
+                //float modz = sdFMod(p.z, 4);                
 
                 float sigmaDist = max_dist;
 

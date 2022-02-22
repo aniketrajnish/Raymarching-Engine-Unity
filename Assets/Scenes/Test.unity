@@ -250,7 +250,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99eed1c698dde9040bfd7899717f77aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shape: 0
+  shape: 3
   color: {r: 1, g: 1, b: 1, a: 0}
 --- !u!4 &383563498
 Transform:
@@ -295,7 +295,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99eed1c698dde9040bfd7899717f77aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shape: 18
+  shape: 21
   color: {r: 1, g: 1, b: 1, a: 0}
 --- !u!4 &501550198
 Transform:
@@ -340,7 +340,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99eed1c698dde9040bfd7899717f77aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shape: 1
+  shape: 0
   color: {r: 1, g: 0, b: 0, a: 0}
 --- !u!4 &1094206272
 Transform:
