@@ -95,7 +95,7 @@ public override void OnInspectorGUI()
              _raymarchMaterial.SetInt("rank", i);
      }
  }
-
+```
 * Attach `RaymarchRenderer.cs` and `Raymarcher.cs` to a gameobject having a mesh renderer and set the properties and type of shape to render in the inspector.
 * Drag the `Raymarcher.shader` in Shader field of `Raymarcher.cs` in inspector and direction light to the Sun's transform field. 
 
