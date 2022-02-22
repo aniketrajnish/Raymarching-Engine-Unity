@@ -83,7 +83,7 @@ Shader "Makra/ImageEffectRaymarcher"
                 return o;
             }
 
-            float getDist(Shape shape, float3 p) {
+            float GetDist(Shape shape, float3 p) {
 
                 float d = 0;
 
@@ -203,7 +203,7 @@ Shader "Makra/ImageEffectRaymarcher"
                 for (int i = 0; i < count; i++) {
                     Shape _shape = shapes[i];
 
-                    float deltaDist = getDist(_shape, p);
+                    float deltaDist = GetDist(_shape, p);
                     sigmaDist = sdUnion(sigmaDist, deltaDist);
                 }
                 return sigmaDist;                
@@ -217,7 +217,7 @@ Shader "Makra/ImageEffectRaymarcher"
             //    for (int i = 0; i < count; i++) {
             //        Shape _shape = shapes[i];
             //
-            //        float deltaDist = getDist(_shape, p);
+            //        float deltaDist = GetDist(_shape, p);
             //        float3 deltaCol = _shape.col;
             //        //float h = clamp( 0.5 + 0.5*(sigmaDist-deltaDist), 0.0, 1.0 );
             //        sigmaCol = lerp(sigmaCol, deltaCol, .1f);
