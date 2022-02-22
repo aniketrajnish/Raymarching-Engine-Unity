@@ -24,6 +24,7 @@ Shader "Raymarching/Raymarcher"
 
 			uniform float wPos;
 			uniform float3 wRot;
+			//uniform float4x4 _CamFrustrum, _CamToWorld;
             
 			struct appdata
 			{
@@ -34,7 +35,6 @@ Shader "Raymarching/Raymarcher"
 			struct v2f
 			{
 				float2 uv : TEXCOORD0;
-				UNITY_FOG_COORDS(1)
 				float4 vertex : SV_POSITION;
 				float3 ro : TEXCOORD1;
 				float3 hitPos : TEXCOORD2;

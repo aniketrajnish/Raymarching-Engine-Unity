@@ -4,14 +4,15 @@ using UnityEngine;
 using UnityEditor;
 public class RaymarchRenderer : MonoBehaviour
 {
-    [HideInInspector] public float wPos;
-    [HideInInspector] public Vector3 wRot; 
+    [HideInInspector] public static float wPos;
+    [HideInInspector] public static Vector3 wRot;
     private void Awake()
     {
         wPos = EditorPrefs.GetFloat("WPos", 0);
         wRot = new Vector3(EditorPrefs.GetFloat("WRotX", 0), EditorPrefs.GetFloat("WRotY", 0), EditorPrefs.GetFloat("WRotZ", 0));
     }
-    public enum Shape { 
+    public enum Shape
+    {
         Shpere,
         Torus,
         CappedTorus,
@@ -41,10 +42,10 @@ public class RaymarchRenderer : MonoBehaviour
         Quad,
         Fractal,
         Tesseract
-    };    
+    };
 
     public Shape shape;
-    public Color color;    
+    public Color color;
 }
 public struct SphereDimensions
 {
@@ -68,8 +69,8 @@ public struct LinkDimensions
 };
 public struct ConeDimensions
 {
-    public static Vector2 tan = new Vector2(EditorPrefs.GetFloat("ConeTanX",1), EditorPrefs.GetFloat("ConeTanY", 2));
-    public static float height = EditorPrefs.GetFloat("ConeHeight", 1);    
+    public static Vector2 tan = new Vector2(EditorPrefs.GetFloat("ConeTanX", 1), EditorPrefs.GetFloat("ConeTanY", 2));
+    public static float height = EditorPrefs.GetFloat("ConeHeight", 1);
 };
 public struct InfiniteConeDimensions
 {
@@ -187,7 +188,7 @@ public struct QuadDimensions
 
 public struct FractalDimenisons
 {
-    public static float i = EditorPrefs.GetFloat("Fraci",10);
+    public static float i = EditorPrefs.GetFloat("Fraci", 10);
     public static float s = EditorPrefs.GetFloat("Fracs", 1.25f);
     public static float o = EditorPrefs.GetFloat("Fraco", 2);
 };
@@ -195,5 +196,3 @@ public struct TesseractDimensions
 {
     public static Vector4 size = new Vector4(EditorPrefs.GetFloat("TessX", .25f), EditorPrefs.GetFloat("TessY", .25f), EditorPrefs.GetFloat("TessZ", .25f), EditorPrefs.GetFloat("TessW", .25f));
 };
-
-

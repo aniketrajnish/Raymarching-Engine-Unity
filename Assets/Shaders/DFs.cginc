@@ -5,9 +5,29 @@ float ndot(float2 a, float2 b) {
 			float dot2(float3 f) {
 				return dot(f, f);
 			}
-
+			
 			float dot2(float2 f) {
 				return dot(f, f);
+			}
+
+			float sdUnion(float d1, float d2) {
+			    return min(d1, d2);
+			}
+
+			float sdIntersection(float d1, float d2) {
+			    return max(d1, d2);
+			}
+
+			float sdSubtraction(float d1, float d2) {
+			    return max(-d1, d2);
+			}
+
+			float sdFMod(inout float p, float s) {
+			    float h = s * .5f;
+				float c = floor((p + h) / s);
+				p = fmod(p + h, s) - h;
+				p = fmod(-p + h, s) - h;
+				return c;
 			}
 
 			//sphere

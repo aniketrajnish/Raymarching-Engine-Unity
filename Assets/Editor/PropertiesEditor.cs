@@ -11,7 +11,7 @@ public class PropertiesEditor : Editor
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Dimensions", EditorStyles.boldLabel);
         RaymarchRenderer rr = (RaymarchRenderer)target;
-        
+
         switch ((int)rr.shape)
         {
             case 0:
@@ -226,8 +226,8 @@ public class PropertiesEditor : Editor
                 break;
             case 28:
                 TesseractDimensions.size = EditorGUILayout.Vector4Field("Size", TesseractDimensions.size);
-                rr.wPos = EditorGUILayout.FloatField("W Position", rr.wPos);
-                rr.wRot = EditorGUILayout.Vector3Field("W Rotation", rr.wRot);
+                RaymarchRenderer.wPos = EditorGUILayout.FloatField("W Position", RaymarchRenderer.wPos);
+                RaymarchRenderer.wRot = EditorGUILayout.Vector3Field("W Rotation", RaymarchRenderer.wRot);
                 EditorPrefs.SetFloat("TessX", TesseractDimensions.size.x);
                 EditorPrefs.SetFloat("TessY", TesseractDimensions.size.y);
                 EditorPrefs.SetFloat("TessZ", TesseractDimensions.size.z);
@@ -235,12 +235,12 @@ public class PropertiesEditor : Editor
                 break;
         }
 
-        EditorPrefs.SetFloat("WPos", rr.wPos);
-        EditorPrefs.SetFloat("WRotX", rr.wRot.x);
-        EditorPrefs.SetFloat("WRotY", rr.wRot.y);
-        EditorPrefs.SetFloat("WRotZ", rr.wRot.z);
+        EditorPrefs.SetFloat("WPos", RaymarchRenderer.wPos);
+        EditorPrefs.SetFloat("WRotX", RaymarchRenderer.wRot.x);
+        EditorPrefs.SetFloat("WRotY", RaymarchRenderer.wRot.y);
+        EditorPrefs.SetFloat("WRotZ", RaymarchRenderer.wRot.z);
 
         EditorUtility.SetDirty(rr);
-    }  
+    }
 }
 #endif

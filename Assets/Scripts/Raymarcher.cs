@@ -5,13 +5,15 @@ using UnityEngine;
 using UnityEditor;
 
 [ExecuteInEditMode]
-public class Raymarcher : MonoBehaviour
+public class Raymarcher : SceneViewFilter
 {
     List<ComputeBuffer> disposable = new List<ComputeBuffer>();
     List<RaymarchRenderer> renderers;
-    ComputeBuffer shapeBuffer; 
+    ComputeBuffer shapeBuffer;
     Material raymarchMaterial;
-    [SerializeField] Shader shader;    
+    private Camera _cam;
+    [SerializeField] Shader shader;
+    [SerializeField] Transform sun;
     public Material _raymarchMaterial
     {
         get
@@ -25,10 +27,17 @@ public class Raymarcher : MonoBehaviour
             return raymarchMaterial;
         }
     }
-    private void Start()
+    public Camera _camera
     {
-        GetComponent<Renderer>().material = _raymarchMaterial;
-    }
+        get
+        {
+            if (!_cam)
+            {
+                _cam = GetComponent<Camera>();
+            }
+            return _cam;
+        }
+    }    
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if (!raymarchMaterial)
@@ -36,75 +45,107 @@ public class Raymarcher : MonoBehaviour
             Graphics.Blit(source, destination);
         }
 
+        RaymarchRender();
+        _raymarchMaterial.SetMatrix("_CamFrustrum", CamFrustrum(_camera));
+        _raymarchMaterial.SetMatrix("_CamToWorld", _camera.cameraToWorldMatrix);
+        _raymarchMaterial.SetVector("_LightDir", sun ? sun.forward : Vector3.down);
+
         RenderTexture.active = destination;
         _raymarchMaterial.SetTexture("_MainTex", source);
 
+        GL.PushMatrix();
+        GL.LoadOrtho();
+        _raymarchMaterial.SetPass(0);
+        GL.Begin(GL.QUADS);
+
+        //BL
+        GL.MultiTexCoord2(0, 0.0f, 0.0f);
+        GL.Vertex3(0.0f, 0.0f, 3.0f);
+
+        //BR
+        GL.MultiTexCoord2(0, 1.0f, 0.0f);
+        GL.Vertex3(1.0f, 0.0f, 2.0f);
+
+        //TR
+        GL.MultiTexCoord2(0, 1.0f, 1.0f);
+        GL.Vertex3(1.0f, 1.0f, 1.0f);
+
+        //TL
+        GL.MultiTexCoord2(0, 0.0f, 1.0f);
+        GL.Vertex3(0.0f, 1.0f, 0.0f);
+
+        GL.End();
+        GL.PopMatrix();        
+
         foreach (var buffer in disposable)
         {
             buffer.Dispose();
         }
-    }
-    private void Awake()
-    {
-        GetComponent<MeshRenderer>().material = _raymarchMaterial;
-    }
-    private void OnEnable()
-    {
-        EditorApplication.update += OnUpdate;
     }   
-    private void OnUpdate()
-    {
-        RaymarchRender();
-        EditorApplication.QueuePlayerLoopUpdate();
-    } 
-    private void Update()
-    {
-        RaymarchRender();
-    }
-    private void OnDisable()
-    {
-        EditorApplication.update -= OnUpdate;
-        foreach (var buffer in disposable)
-        {
-            buffer.Dispose();
-        }
-    }
-   
     void RaymarchRender()
     {
         renderers = new List<RaymarchRenderer>(FindObjectsOfType<RaymarchRenderer>());
-       
-        Properties[] properties = new Properties[renderers.Count];
 
-        for (int i = 0; i < renderers.Count; i++)
+        if (renderers != null)
         {
-            var s = renderers[i];
-            Vector3 color = new Vector3(s.color.r, s.color.g, s.color.b);
-            Properties p = new Properties()
+            Properties[] properties = new Properties[renderers.Count];
+
+            for (int i = 0; i < renderers.Count; i++)
             {
-                col = color,
-                shapeIndex = (int)s.shape,
-                dimensions = Helpers.GetDimensionVectors((int)s.shape)
-            };
-            properties[i] = p;
+                var s = renderers[i];
 
-            if (renderers[i] == GetComponent<RaymarchRenderer>())            
-                _raymarchMaterial.SetInt("rank", i);            
+                s.transform.localScale = Vector3.one;
+                Vector3 color = new Vector3(s.color.r, s.color.g, s.color.b);
+
+                Properties p = new Properties()
+                {
+                    pos = s.transform.position,
+                    rot = s.transform.eulerAngles * Mathf.Deg2Rad,
+                    col = color,
+                    shapeIndex = (int)s.shape,
+                    dimensions = Helpers.GetDimensionVectors((int)s.shape)
+                };
+                properties[i] = p;
+
+                if (renderers[i] == GetComponent<RaymarchRenderer>())
+                    _raymarchMaterial.SetInt("rank", i);
+            }
+
+            shapeBuffer = new ComputeBuffer(renderers.Count, 88);
+            shapeBuffer.SetData(properties);
+            
+            _raymarchMaterial.SetInt("count", renderers.Count);
+            _raymarchMaterial.SetBuffer("shapes", shapeBuffer);
+            _raymarchMaterial.SetFloat("wPos", RaymarchRenderer.wPos);
+            _raymarchMaterial.SetVector("wRot", RaymarchRenderer.wRot);
+            disposable.Add(shapeBuffer);
         }
-        
-        shapeBuffer = new ComputeBuffer(renderers.Count, 64);
-        shapeBuffer.SetData(properties);
-
-        _raymarchMaterial.SetBuffer("shapes", shapeBuffer);        
-        _raymarchMaterial.SetFloat("wPos", GetComponent<RaymarchRenderer>().wPos);        
-        _raymarchMaterial.SetVector("wRot", GetComponent<RaymarchRenderer>().wRot);        
-        disposable.Add(shapeBuffer);
     }
-    
-    
+    private Matrix4x4 CamFrustrum(Camera cam)
+    {
+        Matrix4x4 frustrum = Matrix4x4.identity;
+        float fov = Mathf.Tan((cam.fieldOfView * .5f) * Mathf.Deg2Rad);
+
+        Vector3 goUp = Vector3.up * fov;
+        Vector3 goRight = Vector3.right * fov * cam.aspect;
+
+        Vector3 TL = (-Vector3.forward - goRight + goUp);
+        Vector3 TR = (-Vector3.forward + goRight + goUp);
+        Vector3 BL = (-Vector3.forward - goRight - goUp);
+        Vector3 BR = (-Vector3.forward + goRight - goUp);
+
+        frustrum.SetRow(0, TL);
+        frustrum.SetRow(1, TR);
+        frustrum.SetRow(2, BR);
+        frustrum.SetRow(3, BL);
+
+        return frustrum;
+    }
 }
 public struct Properties
 {
+    public Vector3 pos;
+    public Vector3 rot;
     public Vector3 col;
     public int shapeIndex;
     public vector12 dimensions;
@@ -140,4 +181,3 @@ public struct vector12
         this.l = _l;
     }
 }
-
