@@ -14,6 +14,8 @@ public class Raymarcher : SceneViewFilter
     private Camera _cam;
     [SerializeField] Shader shader;
     [SerializeField] Transform sun;
+    [SerializeField] public float wPos;
+    [SerializeField] public Vector3 wRot;
     public Material _raymarchMaterial
     {
         get
@@ -26,7 +28,7 @@ public class Raymarcher : SceneViewFilter
 
             return raymarchMaterial;
         }
-    }
+    }   
     public Camera _camera
     {
         get
@@ -116,8 +118,8 @@ public class Raymarcher : SceneViewFilter
             
             _raymarchMaterial.SetInt("count", renderers.Count);
             _raymarchMaterial.SetBuffer("shapes", shapeBuffer);
-            _raymarchMaterial.SetFloat("wPos", RaymarchRenderer.wPos);
-            _raymarchMaterial.SetVector("wRot", RaymarchRenderer.wRot);
+            _raymarchMaterial.SetFloat("wPos", wPos);
+            _raymarchMaterial.SetVector("wRot", wRot);
             disposable.Add(shapeBuffer);
         }
     }

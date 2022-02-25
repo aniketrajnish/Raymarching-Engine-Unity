@@ -209,23 +209,22 @@ Shader "Makra/ImageEffectRaymarcher"
                 return sigmaDist;                
             }
 
-            //float3 sigmaColor(float3 p) {
-            //   
-            //    float3 sigmaCol = 1;
-            //    float sigmaDist = max_dist;
-            //
-            //    for (int i = 0; i < count; i++) {
-            //        Shape _shape = shapes[i];
-            //
-            //        float deltaDist = GetDist(_shape, p);
-            //        float3 deltaCol = _shape.col;
-            //        //float h = clamp( 0.5 + 0.5*(sigmaDist-deltaDist), 0.0, 1.0 );
-            //        sigmaCol = lerp(sigmaCol, deltaCol, .1f);
-            //    }
-            //    return sigmaCol;
-            //}
+            float3 sigmaColor(float3 p) {
+               
+                float3 sigmaCol = 1;
+                float sigmaDist = max_dist;
             
+                for (int i = 0; i < count; i++) {
+                    Shape _shape = shapes[i];
             
+                    float deltaDist = GetDist(_shape, p);
+                    float3 deltaCol = _shape.col;
+                    float h = clamp( 0.5 + 0.5*(sigmaDist-deltaDist), 0.0, 1.0 );
+                    sigmaCol = lerp(sigmaCol, deltaCol, h);
+                    sigmaDist = sdUnion(sigmaDist, deltaDist);
+                }
+                return sigmaCol;
+            }     
 
             float3 getNormal(float3 p)
             {              
@@ -242,7 +241,7 @@ Shader "Makra/ImageEffectRaymarcher"
 
             fixed4 raymarching(float3 ro, float3 rd, float depth)
             {
-                fixed4 result = fixed4(1, 1, 1, 1);
+                fixed4 result;
                 float dist = 0;
 
                 for (int i = 0; i < max_steps; i++) {
@@ -259,7 +258,7 @@ Shader "Makra/ImageEffectRaymarcher"
                     if (d < surf_dist) {
                         float3 n = getNormal(p);
                         float lightDir = dot(-_LightDir, n);
-                        fixed3 rgbVal =  (n)*lightDir;
+                        fixed3 rgbVal = sigmaColor(p)*lightDir;
                         result = fixed4(rgbVal, 1);
                         break;
                     }

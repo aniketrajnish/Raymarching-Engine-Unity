@@ -225,20 +225,13 @@ public class PropertiesEditor : Editor
                 EditorPrefs.SetFloat("Fraco", FractalDimenisons.o);
                 break;
             case 28:
-                TesseractDimensions.size = EditorGUILayout.Vector4Field("Size", TesseractDimensions.size);
-                RaymarchRenderer.wPos = EditorGUILayout.FloatField("W Position", RaymarchRenderer.wPos);
-                RaymarchRenderer.wRot = EditorGUILayout.Vector3Field("W Rotation", RaymarchRenderer.wRot);
+                TesseractDimensions.size = EditorGUILayout.Vector4Field("Size", TesseractDimensions.size);                
                 EditorPrefs.SetFloat("TessX", TesseractDimensions.size.x);
                 EditorPrefs.SetFloat("TessY", TesseractDimensions.size.y);
                 EditorPrefs.SetFloat("TessZ", TesseractDimensions.size.z);
                 EditorPrefs.SetFloat("TessW", TesseractDimensions.size.w);
                 break;
         }
-
-        EditorPrefs.SetFloat("WPos", RaymarchRenderer.wPos);
-        EditorPrefs.SetFloat("WRotX", RaymarchRenderer.wRot.x);
-        EditorPrefs.SetFloat("WRotY", RaymarchRenderer.wRot.y);
-        EditorPrefs.SetFloat("WRotZ", RaymarchRenderer.wRot.z);
 
         EditorUtility.SetDirty(rr);
     }

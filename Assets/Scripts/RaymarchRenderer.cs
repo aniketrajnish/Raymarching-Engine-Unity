@@ -3,14 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 public class RaymarchRenderer : MonoBehaviour
-{
-    [HideInInspector] public static float wPos;
-    [HideInInspector] public static Vector3 wRot;
-    private void Awake()
-    {
-        wPos = EditorPrefs.GetFloat("WPos", 0);
-        wRot = new Vector3(EditorPrefs.GetFloat("WRotX", 0), EditorPrefs.GetFloat("WRotY", 0), EditorPrefs.GetFloat("WRotZ", 0));
-    }
+{    
     public enum Shape
     {
         Shpere,
