@@ -55,7 +55,7 @@ Shader "Makra/ImageEffectRaymarcher"
             uniform float3 _LightDir;
             uniform float wPos;
 			uniform float3 wRot;
-            uniform int x, y, z;
+            uniform float3 loop;
 
             struct appdata
             {
@@ -194,12 +194,13 @@ Shader "Makra/ImageEffectRaymarcher"
             }
             
             float distanceField(float3 p) {
-                if (x != 0)
-                    float modx = sdFMod(p.x, x);
-                if (y != 0)
-                    float mody = sdFMod(p.y, y);
-                if (z != 0)
-                    float modz = sdFMod(p.z, z);                
+
+                if (loop.x != 0)
+                    float modx = sdFMod(p.x, loop.x);
+                if (loop.y != 0)
+                    float mody = sdFMod(p.y, loop.y);
+                if (loop.z != 0)
+                    float modz = sdFMod(p.z, loop.z);                
 
                 float sigmaDist = max_dist;
 

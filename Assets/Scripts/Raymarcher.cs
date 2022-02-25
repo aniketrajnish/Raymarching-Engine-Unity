@@ -16,7 +16,7 @@ public class Raymarcher : SceneViewFilter
     [SerializeField] Transform sun;
     [SerializeField] public float wPos;
     [SerializeField] public Vector3 wRot;
-    public int x, y, z;
+    public Vector3 loop;
     public Material _raymarchMaterial
     {
         get
@@ -106,9 +106,7 @@ public class Raymarcher : SceneViewFilter
                 };
                 properties[i] = p;
 
-                _raymarchMaterial.SetInt("x", x);
-                _raymarchMaterial.SetInt("y", y);
-                _raymarchMaterial.SetInt("z", z);
+                _raymarchMaterial.SetVector("loop", loop);
 
                 if (renderers[i] == GetComponent<RaymarchRenderer>())
                     _raymarchMaterial.SetInt("rank", i);

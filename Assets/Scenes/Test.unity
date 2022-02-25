@@ -158,9 +158,7 @@ MonoBehaviour:
   sun: {fileID: 1371672097}
   wPos: 0.03
   wRot: {x: 2.16, y: 1.17, z: 3.47}
-  x: 0
-  y: 0
-  z: 0
+  loop: {x: 0, y: 0, z: 0}
 --- !u!81 &124650882
 AudioListener:
   m_ObjectHideFlags: 0
@@ -267,7 +265,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 383563496}
   m_LocalRotation: {x: -0.067837566, y: 0.5023489, z: 0.07825369, w: 0.8584405}
-  m_LocalPosition: {x: 0.37, y: 6.44, z: 1.25}
+  m_LocalPosition: {x: 0.47, y: 7.35, z: 0.71}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
