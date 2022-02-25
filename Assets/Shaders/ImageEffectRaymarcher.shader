@@ -209,8 +209,7 @@ Shader "Makra/ImageEffectRaymarcher"
                 return sigmaDist;                
             }
 
-            float3 sigmaColor(float3 p) {
-               
+            float3 sigmaColor(float3 p) {               
                 float3 sigmaCol = 1;
                 float sigmaDist = max_dist;
             
@@ -219,9 +218,9 @@ Shader "Makra/ImageEffectRaymarcher"
             
                     float deltaDist = GetDist(_shape, p);
                     float3 deltaCol = _shape.col;
-                    float h = clamp( 0.5 + 0.5*(sigmaDist-deltaDist), 0.0, 1.0 );
+                    float h = clamp( 0.5 + 500*(sigmaDist-deltaDist), 0.0, 1.0 );
                     sigmaCol = lerp(sigmaCol, deltaCol, h);
-                    sigmaDist = sdUnion(sigmaDist, deltaDist);
+                    sigmaDist = sdUnion(deltaDist, sigmaDist);
                 }
                 return sigmaCol;
             }     
@@ -277,7 +276,6 @@ Shader "Makra/ImageEffectRaymarcher"
                float3 rayDirection = normalize(i.ray.xyz);
                float3 rayOrigin = _WorldSpaceCameraPos;
                fixed4 finalRay = raymarching(rayOrigin, rayDirection, depth);
-               //fixed4 finalRay = raymarching(rayOrigin, rayDirection, depth);
                return fixed4(col * (1.0 - finalRay.w) + finalRay.xyz * finalRay.w ,1.0);
             }
             ENDCG

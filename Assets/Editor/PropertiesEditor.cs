@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEngine;
 
 [CustomEditor(typeof(RaymarchRenderer))]
 
@@ -16,6 +17,8 @@ public class PropertiesEditor : Editor
         {
             case 0:
                 SphereDimensions.radius = EditorGUILayout.FloatField("Radius", SphereDimensions.radius);
+                //Undo.RecordObject(rr, "Dimension Change");
+                //Undo.RegisterCompleteObjectUndo(rr, "Dimension Change");
                 EditorPrefs.SetFloat("SphereRadius", SphereDimensions.radius);
                 break;
             case 1:
@@ -231,8 +234,8 @@ public class PropertiesEditor : Editor
                 EditorPrefs.SetFloat("TessZ", TesseractDimensions.size.z);
                 EditorPrefs.SetFloat("TessW", TesseractDimensions.size.w);
                 break;
-        }
-
+        } 
+        
         EditorUtility.SetDirty(rr);
     }
 }
