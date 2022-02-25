@@ -48,14 +48,14 @@ Shader "Makra/ImageEffectRaymarcher"
 			};			
 
 			StructuredBuffer<Shape> shapes;
-			int rank;
-            int count;
+			int rank, count;
             sampler2D _MainTex;
             uniform float4x4 _CamFrustrum, _CamToWorld;
             uniform sampler2D _CameraDepthTexture;
             uniform float3 _LightDir;
             uniform float wPos;
 			uniform float3 wRot;
+            uniform int x, y, z;
 
             struct appdata
             {
@@ -194,9 +194,12 @@ Shader "Makra/ImageEffectRaymarcher"
             }
             
             float distanceField(float3 p) {
-                //float modx = sdFMod(p.x, 4);
-                //float mody = sdFMod(p.y, 4);
-                //float modz = sdFMod(p.z, 4);                
+                if (x != 0)
+                    float modx = sdFMod(p.x, x);
+                if (y != 0)
+                    float mody = sdFMod(p.y, y);
+                if (z != 0)
+                    float modz = sdFMod(p.z, z);                
 
                 float sigmaDist = max_dist;
 
@@ -218,7 +221,7 @@ Shader "Makra/ImageEffectRaymarcher"
             
                     float deltaDist = GetDist(_shape, p);
                     float3 deltaCol = _shape.col;
-                    float h = clamp( 0.5 + 500*(sigmaDist-deltaDist), 0.0, 1.0 );
+                    float h = clamp( 0.5 + 50*(sigmaDist-deltaDist), 0.0, 1.0 );
                     sigmaCol = lerp(sigmaCol, deltaCol, h);
                     sigmaDist = sdUnion(deltaDist, sigmaDist);
                 }

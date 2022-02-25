@@ -16,6 +16,7 @@ public class Raymarcher : SceneViewFilter
     [SerializeField] Transform sun;
     [SerializeField] public float wPos;
     [SerializeField] public Vector3 wRot;
+    public int x, y, z;
     public Material _raymarchMaterial
     {
         get
@@ -48,10 +49,7 @@ public class Raymarcher : SceneViewFilter
         }
 
         RaymarchRender();
-        _raymarchMaterial.SetMatrix("_CamFrustrum", CamFrustrum(_camera));
-        _raymarchMaterial.SetMatrix("_CamToWorld", _camera.cameraToWorldMatrix);
-        _raymarchMaterial.SetVector("_LightDir", sun ? sun.forward : Vector3.down);
-
+        
         RenderTexture.active = destination;
         _raymarchMaterial.SetTexture("_MainTex", source);
 
@@ -79,10 +77,9 @@ public class Raymarcher : SceneViewFilter
         GL.End();
         GL.PopMatrix();        
 
-        foreach (var buffer in disposable)
-        {
+        foreach (var buffer in disposable)        
             buffer.Dispose();
-        }
+        
     }   
     void RaymarchRender()
     {
@@ -109,6 +106,10 @@ public class Raymarcher : SceneViewFilter
                 };
                 properties[i] = p;
 
+                _raymarchMaterial.SetInt("x", x);
+                _raymarchMaterial.SetInt("y", y);
+                _raymarchMaterial.SetInt("z", z);
+
                 if (renderers[i] == GetComponent<RaymarchRenderer>())
                     _raymarchMaterial.SetInt("rank", i);
             }
@@ -120,6 +121,10 @@ public class Raymarcher : SceneViewFilter
             _raymarchMaterial.SetBuffer("shapes", shapeBuffer);
             _raymarchMaterial.SetFloat("wPos", wPos);
             _raymarchMaterial.SetVector("wRot", wRot);
+            _raymarchMaterial.SetMatrix("_CamFrustrum", CamFrustrum(_camera));
+            _raymarchMaterial.SetMatrix("_CamToWorld", _camera.cameraToWorldMatrix);
+            _raymarchMaterial.SetVector("_LightDir", sun ? sun.forward : Vector3.down);
+
             disposable.Add(shapeBuffer);
         }
     }

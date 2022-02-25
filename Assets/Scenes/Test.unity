@@ -158,6 +158,9 @@ MonoBehaviour:
   sun: {fileID: 1371672097}
   wPos: 0.03
   wRot: {x: 2.16, y: 1.17, z: 3.47}
+  x: 0
+  y: 0
+  z: 0
 --- !u!81 &124650882
 AudioListener:
   m_ObjectHideFlags: 0
@@ -253,7 +256,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shape: 3
-  color: {r: 0, g: 0.83348227, b: 1, a: 0}
+  interpolation: 0
+  color: {r: 0.95149136, g: 1, b: 0, a: 0}
+  blendFactor: 0
 --- !u!4 &383563498
 Transform:
   m_ObjectHideFlags: 0
@@ -262,7 +267,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 383563496}
   m_LocalRotation: {x: -0.067837566, y: 0.5023489, z: 0.07825369, w: 0.8584405}
-  m_LocalPosition: {x: 1.4, y: 0.04, z: 2.04}
+  m_LocalPosition: {x: 0.37, y: 6.44, z: 1.25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -297,8 +302,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 99eed1c698dde9040bfd7899717f77aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shape: 1
+  shape: 27
+  interpolation: 0
   color: {r: 0.376157, g: 0.4970232, b: 0.745283, a: 0}
+  blendFactor: 0
 --- !u!4 &501550198
 Transform:
   m_ObjectHideFlags: 0
@@ -343,7 +350,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shape: 7
+  interpolation: 0
   color: {r: 0.97791195, g: 1, b: 0.08962262, a: 0}
+  blendFactor: 0.1
 --- !u!4 &1094206272
 Transform:
   m_ObjectHideFlags: 0
@@ -481,7 +490,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shape: 28
+  interpolation: 0
   color: {r: 1, g: 0, b: 0.010215759, a: 0}
+  blendFactor: 0
 --- !u!4 &1649910020
 Transform:
   m_ObjectHideFlags: 0

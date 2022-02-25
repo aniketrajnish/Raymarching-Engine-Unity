@@ -36,9 +36,21 @@ public class RaymarchRenderer : MonoBehaviour
         Fractal,
         Tesseract
     };
+    public enum Interpolation
+    {
+        Union,
+        Lerp,
+        Subtract,
+        Intersect
+    };
 
     public Shape shape;
+    public Interpolation interpolation;
     public Color color;
+
+    [Range(.1f, 10)]
+    public float blendFactor;
+    
 }
 public struct SphereDimensions
 {
