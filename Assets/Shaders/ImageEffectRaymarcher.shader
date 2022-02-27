@@ -19,7 +19,7 @@ Shader "Makra/ImageEffectRaymarcher"
             #include"UnityCG.cginc"
             #include"DFs.cginc"
 
-            #define max_steps 144
+            #define max_steps 225
             #define max_dist 1000
             #define surf_dist 1e-2
 
@@ -48,14 +48,12 @@ Shader "Makra/ImageEffectRaymarcher"
 			};			
 
 			StructuredBuffer<Shape> shapes;
-			int rank, count;
+			int _Rank, _Count, _Shadow;
             sampler2D _MainTex;
             uniform float4x4 _CamFrustrum, _CamToWorld;
-            uniform sampler2D _CameraDepthTexture;
-            uniform float3 _LightDir;
-            uniform float wPos;
-			uniform float3 wRot;
-            uniform float3 loop;
+            sampler2D _CameraDepthTexture;
+            float3 _LightDir, _WRot, _Loop;
+            float _WPos, _BlendFactor;
 
             struct appdata
             {
@@ -186,7 +184,7 @@ Shader "Makra/ImageEffectRaymarcher"
 					d = sdFractal(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
                     break;
 				case 28:
-				    d = sdTesseract(p, wPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d), wRot);
+				    d = sdTesseract(p, _WPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d), _WRot);
                     break;
 				}
 				
@@ -195,16 +193,16 @@ Shader "Makra/ImageEffectRaymarcher"
             
             float distanceField(float3 p) {
 
-                if (loop.x != 0)
-                    float modx = sdFMod(p.x, loop.x);
-                if (loop.y != 0)
-                    float mody = sdFMod(p.y, loop.y);
-                if (loop.z != 0)
-                    float modz = sdFMod(p.z, loop.z);                
+                if (_Loop.x != 0)
+                    float modx = sdFMod(p.x, _Loop.x);
+                if (_Loop.y != 0)
+                    float mody = sdFMod(p.y, _Loop.y);
+                if (_Loop.z != 0)
+                    float modz = sdFMod(p.z, _Loop.z);                
 
                 float sigmaDist = max_dist;
 
-                for (int i = 0; i < count; i++) {
+                for (int i = 0; i < _Count; i++) {
                     Shape _shape = shapes[i];
 
                     float deltaDist = GetDist(_shape, p);
@@ -217,12 +215,12 @@ Shader "Makra/ImageEffectRaymarcher"
                 float3 sigmaCol = 1;
                 float sigmaDist = max_dist;
             
-                for (int i = 0; i < count; i++) {
+                for (int i = 0; i < _Count; i++) {
                     Shape _shape = shapes[i];
             
                     float deltaDist = GetDist(_shape, p);
                     float3 deltaCol = _shape.col;
-                    float h = clamp( 0.5 + 50*(sigmaDist-deltaDist), 0.0, 1.0 );
+                    float h = clamp( 0.5 + 25*(sigmaDist-deltaDist) / _BlendFactor, 0.0, 1.0 );
                     sigmaCol = lerp(sigmaCol, deltaCol, h);
                     sigmaDist = sdUnion(deltaDist, sigmaDist);
                 }
@@ -261,7 +259,11 @@ Shader "Makra/ImageEffectRaymarcher"
                     if (d < surf_dist) {
                         float3 n = getNormal(p);
                         float lightDir = dot(-_LightDir, n);
-                        fixed3 rgbVal = sigmaColor(p)*lightDir;
+                        fixed3 rgbVal = sigmaColor(p);
+
+                        if (_Shadow == 1)                        
+                            rgbVal = rgbVal * lightDir;                                              
+                        
                         result = fixed4(rgbVal, 1);
                         break;
                     }

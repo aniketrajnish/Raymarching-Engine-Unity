@@ -20,7 +20,7 @@ float ndot(float2 a, float2 b) {
 
 			float sdSubtraction(float d1, float d2) {
 			    return max(-d1, d2);
-			}
+			}			
 
 			float sdFMod(inout float p, float s) {
 			    float h = s * .5f;

@@ -48,7 +48,7 @@ public class RaymarchRenderer : MonoBehaviour
     public Interpolation interpolation;
     public Color color;
 
-    [Range(.1f, 10)]
+    [Range(.1f, 100)]
     public float blendFactor;
     
 }

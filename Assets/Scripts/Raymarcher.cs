@@ -13,10 +13,11 @@ public class Raymarcher : SceneViewFilter
     Material raymarchMaterial;
     private Camera _cam;
     [SerializeField] Shader shader;
-    [SerializeField] Transform sun;
+    [SerializeField] Light sun;
     [SerializeField] public float wPos;
     [SerializeField] public Vector3 wRot;
-    public Vector3 loop;
+    [SerializeField] Vector3 loop;
+    [SerializeField] bool shadow;
     public Material _raymarchMaterial
     {
         get
@@ -85,7 +86,7 @@ public class Raymarcher : SceneViewFilter
     {
         renderers = new List<RaymarchRenderer>(FindObjectsOfType<RaymarchRenderer>());
 
-        if (renderers != null)
+        if (renderers.Count != 0)
         {
             Properties[] properties = new Properties[renderers.Count];
 
@@ -106,22 +107,28 @@ public class Raymarcher : SceneViewFilter
                 };
                 properties[i] = p;
 
-                _raymarchMaterial.SetVector("loop", loop);
+                _raymarchMaterial.SetFloat("_BlendFactor", s.blendFactor * 10);
 
                 if (renderers[i] == GetComponent<RaymarchRenderer>())
-                    _raymarchMaterial.SetInt("rank", i);
+                    _raymarchMaterial.SetInt("_Rank", i);
             }
 
             shapeBuffer = new ComputeBuffer(renderers.Count, 88);
             shapeBuffer.SetData(properties);
             
-            _raymarchMaterial.SetInt("count", renderers.Count);
+            _raymarchMaterial.SetInt("_Count", renderers.Count);
             _raymarchMaterial.SetBuffer("shapes", shapeBuffer);
-            _raymarchMaterial.SetFloat("wPos", wPos);
-            _raymarchMaterial.SetVector("wRot", wRot);
+            _raymarchMaterial.SetFloat("_WPos", wPos);
+            _raymarchMaterial.SetVector("_WRot", wRot);
             _raymarchMaterial.SetMatrix("_CamFrustrum", CamFrustrum(_camera));
             _raymarchMaterial.SetMatrix("_CamToWorld", _camera.cameraToWorldMatrix);
-            _raymarchMaterial.SetVector("_LightDir", sun ? sun.forward : Vector3.down);
+            _raymarchMaterial.SetVector("_Loop", loop);
+            _raymarchMaterial.SetVector("_LightDir", sun ? sun.transform.forward : Vector3.down);
+
+            if (shadow)
+                _raymarchMaterial.SetInt("_Shadow", 1);
+            else
+                _raymarchMaterial.SetInt("_Shadow", 0);
 
             disposable.Add(shapeBuffer);
         }
