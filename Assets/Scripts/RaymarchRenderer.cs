@@ -39,7 +39,6 @@ public class RaymarchRenderer : MonoBehaviour
     public enum Interpolation
     {
         Union,
-        Lerp,
         Subtract,
         Intersect
     };

@@ -102,18 +102,20 @@ public class Raymarcher : SceneViewFilter
                     pos = s.transform.position,
                     rot = s.transform.eulerAngles * Mathf.Deg2Rad,
                     col = color,
+                    blendFactor = s.blendFactor * 100,
                     shapeIndex = (int)s.shape,
+                    opIndex = (int)s.interpolation,
                     dimensions = Helpers.GetDimensionVectors((int)s.shape)
                 };
                 properties[i] = p;
 
-                _raymarchMaterial.SetFloat("_BlendFactor", s.blendFactor * 10);
+                //_raymarchMaterial.SetFloat("_BlendFactor", s.blendFactor * 10);
 
                 if (renderers[i] == GetComponent<RaymarchRenderer>())
                     _raymarchMaterial.SetInt("_Rank", i);
             }
 
-            shapeBuffer = new ComputeBuffer(renderers.Count, 88);
+            shapeBuffer = new ComputeBuffer(renderers.Count, 96);
             shapeBuffer.SetData(properties);
             
             _raymarchMaterial.SetInt("_Count", renderers.Count);
@@ -159,7 +161,9 @@ public struct Properties
     public Vector3 pos;
     public Vector3 rot;
     public Vector3 col;
+    public float blendFactor;
     public int shapeIndex;
+    public int opIndex;
     public vector12 dimensions;
 }
 public struct vector12

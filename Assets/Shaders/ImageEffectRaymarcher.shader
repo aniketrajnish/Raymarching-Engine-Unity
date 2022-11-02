@@ -43,7 +43,9 @@ Shader "Makra/ImageEffectRaymarcher"
                 float3 pos;
                 float3 rot;
 				float3 col;
+                float blendFactor;
 				int shapeIndex;
+                int opIndex;
 				vector12 dimensions;
 			};			
 
@@ -53,7 +55,7 @@ Shader "Makra/ImageEffectRaymarcher"
             uniform float4x4 _CamFrustrum, _CamToWorld;
             sampler2D _CameraDepthTexture;
             float3 _LightDir, _WRot, _Loop;
-            float _WPos, _BlendFactor;
+            float _WPos;
 
             struct appdata
             {
@@ -186,8 +188,7 @@ Shader "Makra/ImageEffectRaymarcher"
 				case 28:
 				    d = sdTesseract(p, _WPos, float4(shape.dimensions.a, shape.dimensions.b, shape.dimensions.c, shape.dimensions.d), _WRot);
                     break;
-				}
-				
+				}				
 				return d;    
             }
             
@@ -206,7 +207,18 @@ Shader "Makra/ImageEffectRaymarcher"
                     Shape _shape = shapes[i];
 
                     float deltaDist = GetDist(_shape, p);
-                    sigmaDist = sdUnion(sigmaDist, deltaDist);
+                    switch (_shape.opIndex)
+                    {
+                    case 0:
+                        sigmaDist = sdUnion(sigmaDist, deltaDist);
+                        break;
+                    case 1:
+                        sigmaDist = sdIntersection(sigmaDist, deltaDist);
+                        break;
+                    case 2:
+                        sigmaDist = sdSubtraction(sigmaDist, deltaDist);
+                        break;
+                    }
                 }
                 return sigmaDist;                
             }
@@ -220,9 +232,20 @@ Shader "Makra/ImageEffectRaymarcher"
             
                     float deltaDist = GetDist(_shape, p);
                     float3 deltaCol = _shape.col;
-                    float h = clamp( 0.5 + 25*(sigmaDist-deltaDist) / _BlendFactor, 0.0, 1.0 );
+                    float h = clamp( 0.5 + 25*(sigmaDist-deltaDist) / _shape.blendFactor, 0.0, 1.0 );
                     sigmaCol = lerp(sigmaCol, deltaCol, h);
-                    sigmaDist = sdUnion(deltaDist, sigmaDist);
+                    switch (_shape.opIndex)
+                    {
+                    case 0:
+                        sigmaDist = sdUnion(sigmaDist, deltaDist);
+                        break;
+                    case 1:
+                        sigmaDist = sdIntersection(sigmaDist, deltaDist);
+                        break;
+                    case 2:
+                        sigmaDist = sdSubtraction(sigmaDist, deltaDist);
+                        break;
+                    }
                 }
                 return sigmaCol;
             }     
