@@ -1,5 +1,5 @@
 # Raymarching-Engine-Unity
-A raymarching engine for Unity.<br>
+A raymarching engine for Unity that supports 25+ primitives and various operations.<br>
 
 https://user-images.githubusercontent.com/58925008/155891674-fdb4e1e8-3e80-447b-9439-aec03d8f34eb.mp4
 
