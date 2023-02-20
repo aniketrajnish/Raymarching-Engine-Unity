@@ -12,11 +12,14 @@ Shader "Makra/ImageEffectRaymarcher"
         Pass
         {
             CGPROGRAM
+
             #pragma vertex vert
             #pragma fragment frag
             #pragma target 3.0
-
+            
             #include"UnityCG.cginc"
+
+
             #include"DFs.cginc"
 
             #define max_steps 225
@@ -82,7 +85,7 @@ Shader "Makra/ImageEffectRaymarcher"
                 o.ray = mul(_CamToWorld, o.ray);
                 return o;
             }
-
+           
             float GetDist(Shape shape, float3 p) {
 
                 float d = 0;
@@ -95,7 +98,7 @@ Shader "Makra/ImageEffectRaymarcher"
 
                 switch (shape.shapeIndex) {
 				case 0:
-					d = sdSphere(p, shape.dimensions.a);
+                    d = sdSphere(p, shape.dimensions.a);
                     break;
 				case 1:
 					d = sdTorus(p, float2(shape.dimensions.a, shape.dimensions.b));
@@ -107,7 +110,7 @@ Shader "Makra/ImageEffectRaymarcher"
 					d = sdLink(p, shape.dimensions.a, shape.dimensions.b, shape.dimensions.c);
                     break;
 				case 4:
-					d = sdCone(p, shape.dimensions.a, float2(shape.dimensions.b, shape.dimensions.c));
+					d = sdCone(p, float2(shape.dimensions.a, shape.dimensions.b), shape.dimensions.c);
                     break;
 				case 5:
 					d = sdInfCone(p, float2(shape.dimensions.a, shape.dimensions.b));
