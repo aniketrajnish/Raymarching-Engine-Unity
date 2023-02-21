@@ -58,6 +58,7 @@ float ndot(float2 a, float2 b) {
 			//cone
 			float sdCone(float3 p, float2 c, float h)
 			{
+				p -= float3(0, h / 2, 0);
 				float2 q = h * float2(c.x / c.y, -1.0);
 
 				float2 w = float2(length(p.xz), p.y);
@@ -137,6 +138,7 @@ float ndot(float2 a, float2 b) {
 			//capped cone
 			float sdCappedCone(float3 p, float h, float r1, float r2)
 			{
+				p -= float3(0, h / 2, 0);
 				float2 q = float2(length(p.xz), p.y);
 				float2 k1 = float2(r2, h);
 				float2 k2 = float2(r2 - r1, 2.0 * h);
@@ -249,6 +251,7 @@ float ndot(float2 a, float2 b) {
 			//pyramid
 			float sdPyramid(float3 p, float h)
 			{
+				p += float3(0, h / 2, 0);
 				float m2 = h * h + 0.25;
 
 				p.xz = abs(p.xz);
