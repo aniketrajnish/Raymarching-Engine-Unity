@@ -8,16 +8,26 @@ using UnityEditor;
 public class Raymarcher : SceneViewFilter
 {
     List<ComputeBuffer> disposable = new List<ComputeBuffer>();
-    List<RaymarchRenderer> renderers;
+    [HideInInspector] public List<RaymarchRenderer> renderers;
+    public Properties shapeProperties;
     ComputeBuffer shapeBuffer;
     Material raymarchMaterial;
     private Camera _cam;
+    [Header("General Settings")]
     [SerializeField] Shader shader;
     [SerializeField] Light sun;
-    [SerializeField] public float wPos;
-    [SerializeField] public Vector3 wRot;
-    [SerializeField] Vector3 loop;
-    [SerializeField] bool shadow;
+    [SerializeField] public Vector3 loop;    
+    [Header("Light Settings")]
+    [SerializeField] bool isLit = true;
+    [SerializeField] bool isShadowHard;
+    [SerializeField] bool isAO = true;
+    [SerializeField] Color lightCol = Color.white;
+    [SerializeField] public float lightIntensity = 1.2f, shadowIntensity = 1, shadowMin = 1, shadowMax = 50, shadowSmooth = 12.5f, AOStep = .08f, AOIntensity = .5f;
+    [SerializeField] int AOIteration = 1;
+    [Header("Render Settings")]
+    [SerializeField] float maxSteps = 225;
+    [SerializeField] float maxDist = 1000;
+    [SerializeField] float surfDist = .01f;
     public Material _raymarchMaterial
     {
         get
@@ -104,8 +114,8 @@ public class Raymarcher : SceneViewFilter
                     col = color,
                     blendFactor = s.blendFactor * 100,
                     shapeIndex = (int)s.shape,
-                    opIndex = (int)s.interpolation,
-                    dimensions = Helpers.GetDimensionVectors((int)s.shape)
+                    opIndex = (int)s.operation,
+                    dimensions = Helpers.GetDimensionVectors((int)s.shape, s.dimensions)
                 };
                 properties[i] = p;
 
@@ -117,21 +127,41 @@ public class Raymarcher : SceneViewFilter
 
             shapeBuffer = new ComputeBuffer(renderers.Count, 96);
             shapeBuffer.SetData(properties);
-            
+
             _raymarchMaterial.SetInt("_Count", renderers.Count);
             _raymarchMaterial.SetBuffer("shapes", shapeBuffer);
-            _raymarchMaterial.SetFloat("_WPos", wPos);
-            _raymarchMaterial.SetVector("_WRot", wRot);
             _raymarchMaterial.SetMatrix("_CamFrustrum", CamFrustrum(_camera));
             _raymarchMaterial.SetMatrix("_CamToWorld", _camera.cameraToWorldMatrix);
             _raymarchMaterial.SetVector("_Loop", loop);
             _raymarchMaterial.SetVector("_LightDir", sun ? sun.transform.forward : Vector3.down);
+            _raymarchMaterial.SetFloat("max_steps", maxSteps);
+            _raymarchMaterial.SetFloat("max_dist", maxDist);
+            _raymarchMaterial.SetFloat("surf_dist", surfDist);
+            _raymarchMaterial.SetColor("_LightCol", lightCol);
+            _raymarchMaterial.SetFloat("_LightIntensity", lightIntensity);
+            _raymarchMaterial.SetFloat("_ShadowIntensity", shadowIntensity);
+            _raymarchMaterial.SetFloat("_ShadowMin", shadowMin);
+            _raymarchMaterial.SetFloat("_ShadowMax", shadowMax);
+            _raymarchMaterial.SetFloat("_ShadowSmooth", shadowSmooth);
+            _raymarchMaterial.SetFloat("_AOStep", AOStep);
+            _raymarchMaterial.SetFloat("_AOIntensity", AOIntensity);
+            _raymarchMaterial.SetInt("_AOIteration", AOIteration);
 
-            if (shadow)
-                _raymarchMaterial.SetInt("_Shadow", 1);
+            if (isLit)
+                _raymarchMaterial.SetInt("_isLit", 1);
             else
-                _raymarchMaterial.SetInt("_Shadow", 0);
+                _raymarchMaterial.SetInt("_isLit", 0);
 
+            if (isShadowHard)
+                _raymarchMaterial.SetInt("_isShadowHard", 1);
+            else
+                _raymarchMaterial.SetInt("_isShadowHard", 0);
+
+            if (isAO)
+                _raymarchMaterial.SetInt("_isAO", 1);
+            else
+                _raymarchMaterial.SetInt("_isAO", 0);
+           
             disposable.Add(shapeBuffer);
         }
     }

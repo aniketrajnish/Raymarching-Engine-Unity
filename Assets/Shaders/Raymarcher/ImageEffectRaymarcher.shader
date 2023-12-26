@@ -20,11 +20,7 @@ Shader "Makra/ImageEffectRaymarcher"
             #include"UnityCG.cginc"
 
 
-            #include"DFs.cginc"
-
-            #define max_steps 225
-            #define max_dist 1000
-            #define surf_dist 1e-2
+            #include"Include/DFs.cginc"            
 
             struct vector12 {
 				float a;
@@ -52,13 +48,14 @@ Shader "Makra/ImageEffectRaymarcher"
 				vector12 dimensions;
 			};			
 
+            float max_steps, max_dist, surf_dist;
 			StructuredBuffer<Shape> shapes;
-			int _Rank, _Count, _Shadow;
+            int _Rank, _Count, _isLit, _isAO, _isShadowHard, _AOIteration;
             sampler2D _MainTex;
             uniform float4x4 _CamFrustrum, _CamToWorld;
             sampler2D _CameraDepthTexture;
-            float3 _LightDir, _WRot, _Loop;
-            float _WPos;
+            float3 _LightDir, _WRot, _Loop, _LightCol;
+            float _WPos, _LightIntensity, _ShadowMin, _ShadowMax, _ShadowIntensity, _ShadowSmooth, _AOStep, _AOIntensity;
 
             struct appdata
             {
@@ -230,24 +227,25 @@ Shader "Makra/ImageEffectRaymarcher"
                 float3 sigmaCol = 1;
                 float sigmaDist = max_dist;
             
-                for (int i = 0; i < _Count; i++) {
+                for (int i = 0; i < _Count; i++)
+                {
                     Shape _shape = shapes[i];
             
                     float deltaDist = GetDist(_shape, p);
                     float3 deltaCol = _shape.col;
-                    float h = clamp( 0.5 + 25*(sigmaDist-deltaDist) / _shape.blendFactor, 0.0, 1.0 );
+                    float h = clamp(0.5 + 25 * (sigmaDist - deltaDist) / _shape.blendFactor, 0.0, 1.0);
                     sigmaCol = lerp(sigmaCol, deltaCol, h);
                     switch (_shape.opIndex)
                     {
-                    case 0:
-                        sigmaDist = sdUnion(sigmaDist, deltaDist);
-                        break;
-                    case 1:
-                        sigmaDist = sdIntersection(sigmaDist, deltaDist);
-                        break;
-                    case 2:
-                        sigmaDist = sdSubtraction(sigmaDist, deltaDist);
-                        break;
+                        case 0:
+                            sigmaDist = sdUnion(sigmaDist, deltaDist);
+                            break;
+                        case 1:
+                            sigmaDist = sdIntersection(sigmaDist, deltaDist);
+                            break;
+                        case 2:
+                            sigmaDist = sdSubtraction(sigmaDist, deltaDist);
+                            break;
                     }
                 }
                 return sigmaCol;
@@ -266,12 +264,84 @@ Shader "Makra/ImageEffectRaymarcher"
               return normalize(n);
             }
 
+            float hardShadow(float3 ro, float3 rd, float minDist, float maxDist)
+            {
+                for (float dist = minDist; dist < maxDist;)
+                {
+                    float h = distanceField(ro + rd * dist);
+        
+                    if (h < surf_dist)
+                        return 0;
+        
+                    dist += h;
+                }
+                return 1;
+            }
+
+            float softShadow(float3 ro, float3 rd, float minDist, float maxDist, float k)
+            {
+                float result = 1;
+                for (float dist = minDist; dist < maxDist;)
+                {
+                    float h = distanceField(ro + rd * dist);
+        
+                    if (h < surf_dist)
+                        return 0;
+        
+                    result = min(result, k * h / dist);
+                    dist += h;
+                }
+                return result;
+            }
+
+            float AO(float3 p, float3 n)
+            {
+                float step = _AOStep;
+                float ao = 0;
+                float dist;
+    
+                for (int i = 1; i <= _AOIteration; i++)
+                {
+                    dist = step * i;
+                    ao += max(0, (dist - distanceField(p + n * dist)) / dist);
+                }
+                return (1 - ao * _AOIntensity);
+            }
+
+            float3 Shading(float3 p, float3 n)
+            {
+                float3 result;
+                float3 rgbVal = sigmaColor(p);
+                float shadow = 1;
+                float3 light = float3(1, 1, 1);
+    
+                if (_isLit == 1)
+                {
+                    light = normalizeF3(_LightCol * dot(-_LightDir, n)) * _LightIntensity;
+    
+                    if (_isShadowHard == 1)
+                        shadow = normalizeF3(hardShadow(p, -_LightDir, _ShadowMin, _ShadowMax));
+                    else if (_isShadowHard == 0)
+                        shadow = normalizeF3(softShadow(p, -_LightDir, _ShadowMin, _ShadowMax, _ShadowSmooth));
+                    shadow = max(0, pow(shadow, _ShadowIntensity));
+                }
+    
+                float ao = 1;
+                if (_isAO == 1)
+                    ao = AO(p, n);
+    
+                result = rgbVal * light * shadow * ao;
+    
+                return result;
+            }
+
             fixed4 raymarching(float3 ro, float3 rd, float depth)
             {
                 fixed4 result;
                 float dist = 0;
 
-                for (int i = 0; i < max_steps; i++) {
+                for (int i = 0; i < max_steps; i++)
+                {
                     if (dist > max_dist || dist >= depth)
                     {
                         result = fixed4(rd, 0);
@@ -280,17 +350,18 @@ Shader "Makra/ImageEffectRaymarcher"
 
                     float3 p = ro + rd * dist;
 
-                    float d = distanceField(p); 
+                    float d = distanceField(p);
 
-                    if (d < surf_dist) {
+                    if (d < surf_dist)
+                    {
                         float3 n = getNormal(p);
-                        float lightDir = dot(-_LightDir, n);
+                        float3 s = Shading(p, n);
                         fixed3 rgbVal = sigmaColor(p);
 
-                        if (_Shadow == 1)                        
-                            rgbVal = rgbVal * lightDir;                                              
+                        //if (_isLit == 1)                        
+                            //rgbVal = rgbVal * s;
                         
-                        result = fixed4(rgbVal, 1);
+                        result = fixed4(s, 1);
                         break;
                     }
 
@@ -298,7 +369,7 @@ Shader "Makra/ImageEffectRaymarcher"
                 }
 
                 return result;
-            }       
+            }
 
             fixed4 frag (v2f i) : SV_Target
             {
