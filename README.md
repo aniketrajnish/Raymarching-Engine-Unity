@@ -3,6 +3,12 @@ A fast GPU-accelerated raymarching engine for Unity with support for over 28 pri
 
 https://user-images.githubusercontent.com/58925008/155891674-fdb4e1e8-3e80-447b-9439-aec03d8f34eb.mp4
 
+## Updates
+#### v002
+* The engine now stores the dimensions of the shapes as scriptable objects, to keep multiple instances of same shape persistant across sessions.
+* Added support for Ambient Occlussion, Hard/Soft Shadows and various render setting exposed for the users to play around with.
+* Download the `.unitypackage` [here](https://github.com/aniketrajnish/Raymarching-Engine-Unity/releases/tag/v002).
+
 ## Rendering the shapes provided
 1. Using an Image Effect Shader
     * Attach `Raymarcher.cs` to the Main Camera and `RaymarchRenderer.cs` to an empty gameobject and set the properties and type of shape to render in the inspector.
