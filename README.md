@@ -13,7 +13,7 @@ https://user-images.githubusercontent.com/58925008/155891674-fdb4e1e8-3e80-447b-
 * Attach `Raymarcher.cs` to the Main Camera and `RaymarchRenderer.cs` to an empty gameobject.
 * Drag the `ImageEffectRaymarcher.shader` in Shader field of `Raymarcher.cs` in inspector and direction light to the Sun's transform field.
 * Click on `Create New Dimensions` in the `RaymarchRenderer.cs` to create a scriptable object to hold the dimesnion data of the shapes.
-* You can control the following settings for the raymarching using the `Raymarcher` componenet-
+* You can control the following settings for the raymarching using the `Raymarcher` component-
   | Category             | Variable         | Description                                                                  |
   |----------------------|------------------|------------------------------------------------------------------------------|
   | **General Settings** | Shader           | Shader used for raymarching.                                                 |
@@ -37,7 +37,7 @@ https://user-images.githubusercontent.com/58925008/155891674-fdb4e1e8-3e80-447b-
 * You can control the following properties of the individual shapes using the `RaymarchRenderer` componnent-
   | Category              | Variable         | Description                                                               |
   |-----------------------|------------------|---------------------------------------------------------------------------|
-  | **Default Inspector** | Shape            | 4D shape to be rendered.                                                  |
+  | **Default Inspector** | Shape            | Shape to be rendered.                                                  |
   |                       | Operation        | Operation to be performed (union, subtraction, intersection).             |
   |                       | Color            | Color of the shape.                                                       |
   |                       | Create New Dimensions | Button to create new dimenion scriptable object for the shape |
@@ -96,3 +96,4 @@ https://user-images.githubusercontent.com/58925008/155891674-fdb4e1e8-3e80-447b-
             //property editor here
         }
     }
+    ```
